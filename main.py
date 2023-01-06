@@ -34,7 +34,7 @@ def load_sound(name):
 
 def main():
     FPS = 60
-    WIDTH, HEIGHT = 400, 400
+    WIDTH, HEIGHT = 600, 1000
 
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
