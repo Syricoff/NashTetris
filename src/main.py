@@ -62,13 +62,13 @@ def start_screen():
 
 class Field():
     def __init__(self, row, column) -> None:
-        self.rect = pygame.Rect(10, 10, column * BLOCK_W + BORDER_W * 2, row * BLOCK_H + BORDER_W * 2)
+        self.rect = pygame.Rect(10, (HEIGHT - row * BLOCK_H + BORDER_W * 2) / 2, column * BLOCK_W + BORDER_W * 2, row * BLOCK_H + BORDER_W * 2)
         self.field = [[None for _ in range(column)] for _ in range(row)]
         
     def draw(self, surface):
         image = pygame.Surface(self.rect.size)
         pygame.draw.rect(image, 'white', image.get_rect(), BORDER_W)
-        surface.blit(image, image.get_rect())
+        surface.blit(image, self.rect)
 
 if __name__ == '__main__':
     FPS = 60
