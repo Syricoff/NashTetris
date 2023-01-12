@@ -2,6 +2,11 @@ import pygame
 import os
 import sys
 
+FPS = 60
+WIDTH, HEIGHT = 600, 1000
+BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
+BORDER_W = 5
+
 
 def terminate():
     pygame.quit()
@@ -62,35 +67,41 @@ def start_screen():
 
 class Field():
     def __init__(self, row, column) -> None:
-        self.rect = pygame.Rect(20, HEIGHT - (row * BLOCK_SIZE.h + BORDER_W * 2) - 20, column * BLOCK_SIZE.w + BORDER_W * 2, row * BLOCK_SIZE.h + BORDER_W * 2)
+        self.rect = pygame.Rect(20,
+                                HEIGHT - (row * BLOCK_SIZE.h + BORDER_W * 2) - 20,
+                                column * BLOCK_SIZE.w + BORDER_W * 2,
+                                row * BLOCK_SIZE.h + BORDER_W * 2)
         self.field = [[None for _ in range(column)] for _ in range(row)]
-        
-    def draw(self, surface):
-        image = pygame.Surface(self.rect.size)
-        pygame.draw.rect(image, 'white', image.get_rect(), BORDER_W)
-        for row in range(len(self.field)):
-            for column in range(len(self.field[0])):
-                if self.field[row][column]:
-                    pos = pygame.Rect((BLOCK_SIZE.w * column + BORDER_W, BLOCK_SIZE.h * row + BORDER_W), BLOCK_SIZE.size)
-                    pygame.draw.rect(image, 'red', pos, 0)
 
+    def draw(self, surface):
+        # Создаём пустой холст размером поля
+        image = pygame.Surface(self.rect.size)
+        # Рисуем границы стакана
+        pygame.draw.rect(image, 'white', image.get_rect(), BORDER_W)
+        # Проходим в цикле по перевёрнутой матрице поля
+        for row, line in enumerate(self.field[::-1]):
+            for column, cell in enumerate(line):
+                if cell:  # Если в ячейке есть блок
+                    # Определяем позицию блока
+                    pos = pygame.Rect((BLOCK_SIZE.w * column + BORDER_W,
+                                       BLOCK_SIZE.h * row + BORDER_W),
+                                      BLOCK_SIZE.size)
+                    # Рисуем блок
+                    # Пока рисует красным цветом, будут картинки
+                    pygame.draw.rect(image, 'red', pos, 0)
+        # Переноим изображение на соновной холст
         surface.blit(image, self.rect)
 
-if __name__ == '__main__':
-    FPS = 60
-    WIDTH, HEIGHT = 600, 1000
-    BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
-    BORDER_W = 5
 
+if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
-    
+    # Создание объектов
     field = Field(16, 8)
-
-    running = start_screen() # Возможно надо будет как то по другому это сделать
-
+    # Стартовый экран
+    running = start_screen()  # Возможно надо будет как то по другому это сделать
     while running:
         clock.tick(FPS)
         for event in pygame.event.get():
