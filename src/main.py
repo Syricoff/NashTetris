@@ -41,7 +41,7 @@ def load_sound(name):
 def show_text(screen, text: tuple | list, color='white', title=False):
     press_key_font = pygame.font.Font(None, 30)
     # Сюда надо разные шрифты
-    font = pygame.font.Font(None, 60) if title else pygame.font.Font(None, 60)
+    font = pygame.font.Font(os.path.join('data', 'Sonic1.ttf'), 60) if title else pygame.font.Font(None, 60)
     titleSurf = font.render(text, True, color)
     titleRect = titleSurf.get_rect()
     titleRect.center = (int(WIDTH / 2), int(HEIGHT / 2))
