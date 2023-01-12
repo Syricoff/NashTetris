@@ -62,19 +62,25 @@ def start_screen():
 
 class Field():
     def __init__(self, row, column) -> None:
-        self.rect = pygame.Rect(10, (HEIGHT - row * BLOCK_H + BORDER_W * 2) / 2, column * BLOCK_W + BORDER_W * 2, row * BLOCK_H + BORDER_W * 2)
+        self.rect = pygame.Rect(20, HEIGHT - (row * BLOCK_SIZE.h + BORDER_W * 2) - 20, column * BLOCK_SIZE.w + BORDER_W * 2, row * BLOCK_SIZE.h + BORDER_W * 2)
         self.field = [[None for _ in range(column)] for _ in range(row)]
         
     def draw(self, surface):
         image = pygame.Surface(self.rect.size)
         pygame.draw.rect(image, 'white', image.get_rect(), BORDER_W)
+        for row in range(len(self.field)):
+            for column in range(len(self.field[0])):
+                if self.field[row][column]:
+                    pos = pygame.Rect((BLOCK_SIZE.w * column + BORDER_W, BLOCK_SIZE.h * row + BORDER_W), BLOCK_SIZE.size)
+                    pygame.draw.rect(image, 'red', pos, 0)
+
         surface.blit(image, self.rect)
 
 if __name__ == '__main__':
     FPS = 60
     WIDTH, HEIGHT = 600, 1000
-    BLOCK_SIZE = BLOCK_W, BLOCK_H = (50, 50)
-    BORDER_W = 10
+    BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
+    BORDER_W = 5
 
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
