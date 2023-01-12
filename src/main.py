@@ -60,14 +60,28 @@ def start_screen():
         clock.tick(FPS)
 
 
+class Field():
+    def __init__(self, row, column) -> None:
+        self.rect = pygame.Rect(10, 10, column * BLOCK_W + BORDER_W * 2, row * BLOCK_H + BORDER_W * 2)
+        self.field = [[None for _ in range(column)] for _ in range(row)]
+        
+    def draw(self, surface):
+        image = pygame.Surface(self.rect.size)
+        pygame.draw.rect(image, 'white', image.get_rect(), BORDER_W)
+        surface.blit(image, image.get_rect())
+
 if __name__ == '__main__':
     FPS = 60
     WIDTH, HEIGHT = 600, 1000
+    BLOCK_SIZE = BLOCK_W, BLOCK_H = (50, 50)
+    BORDER_W = 10
 
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
+    
+    field = Field(16, 8)
 
     running = start_screen() # Возможно надо будет как то по другому это сделать
 
@@ -77,5 +91,6 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
         screen.fill('black')
+        field.draw(screen)
         pygame.display.flip()
     terminate()
