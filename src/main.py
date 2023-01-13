@@ -73,13 +73,29 @@ class Field():
                                 row * BLOCK_SIZE.h + BORDER_W * 2)
         self.field = [[None for _ in range(column)] for _ in range(row)]
 
+    # Реализовал методы, для удобной работы с классом как со списком
+    def __len__(self):
+        return len(self.rect)
+
+    def __getitem__(self, key):
+        return self.field[key]
+
+    def __setitem__(self, key, value):
+        self.field[key] = value
+
+    def __delitem__(self, key):
+        del self.field[key]
+
+    def __iter__(self):
+        return iter(self.field)
+
     def draw(self, surface):
         # Создаём пустой холст размером поля
         image = pygame.Surface(self.rect.size)
         # Рисуем границы стакана
         pygame.draw.rect(image, 'white', image.get_rect(), BORDER_W)
         # Проходим в цикле по перевёрнутой матрице поля
-        for row, line in enumerate(self.field[::-1]):
+        for row, line in enumerate(self[::-1]):
             for column, cell in enumerate(line):
                 if cell:  # Если в ячейке есть блок
                     # Определяем позицию блока
