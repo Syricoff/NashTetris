@@ -3,7 +3,7 @@ import os
 import sys
 
 FPS = 60
-WIDTH, HEIGHT = 600, 1000
+SIZE = WIDTH, HEIGHT = 800, 1000
 BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
 
@@ -33,36 +33,68 @@ def load_sound(name):
 
     if not pygame.mixer or not pygame.mixer.get_init():
         return NoneSound()
-
-    fullname = os.path.join('data', name)
-    return pygame.mixer.Sound(fullname)
+    return pygame.mixer.Sound(os.path.join('data', name))
 
 
-def show_text(screen, text: tuple | list, color='white', title=False):
-    press_key_font = pygame.font.Font(None, 30)
-    # Сюда надо разные шрифты
-    font = pygame.font.Font(os.path.join('data', 'Sonic1.ttf'), 60) if title else pygame.font.Font(None, 60)
-    titleSurf = font.render(text, True, color)
-    titleRect = titleSurf.get_rect()
-    titleRect.center = (int(WIDTH / 2), int(HEIGHT / 2))
-    screen.blit(titleSurf, titleRect)
-    # Надо прикрутить мерциющий текст
-    pressKeySurf = press_key_font.render('press any key to countine', True, color)
-    pressKeyRect = titleSurf.get_rect()
-    pressKeyRect.center = (10 + pressKeyRect.w / 2, HEIGHT - pressKeyRect.h)
-    screen.blit(pressKeySurf, pressKeyRect)
+def show_centered_text(surface, text: tuple | list, color='white', title=False):
+    font = pygame.font.Font('src/data/ChargeVectorBlack.ttf', 80) if title else pygame.font.Font(None, 60)
+    text = font.render(text, True, color)
+    textRect = text.get_rect()
+    textRect.center = (int(WIDTH / 2), int(HEIGHT / 2))
+    surface.blit(text, textRect)
 
 
-def start_screen():
-    show_text(screen, 'Tetris game', title=True)
+def show_title(surface):
+    font = pygame.font.Font('src/data/ChargeVectorBlack.ttf', 80)
+    text = font.render('NashTetris', True, 'white')
+    textRect = text.get_rect()
+    textRect.center = (int(WIDTH / 2), textRect.h)
+    surface.blit(text, textRect)
+
+
+def blink_text(surface):
+    press_key_font = pygame.font.Font(None, 35)
+    color = 55
     while True:
+        clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type in [pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN]:
+            elif event.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN):
                 return True
+        if color == 255:
+            flag = False
+        elif color == 55:
+            flag = True
+        color += 1 if flag else -1
+        pressKeySurf = press_key_font.render('press any key to countine', True, (color, color, color))
+        pressKeyRect = pressKeySurf.get_rect()
+        pressKeyRect.center = (WIDTH / 2, HEIGHT * 0.55)
+        surface.blit(pressKeySurf, pressKeyRect)
         pygame.display.flip()
-        clock.tick(FPS)
+
+
+def start_screen(surface):
+    show_centered_text(surface, 'NashTetris', title=True)
+    return blink_text(surface)
+
+
+def dim_screen(surface):
+    screen = pygame.Surface(SIZE, pygame.SRCALPHA)
+    screen.fill((0, 0, 0, 175))
+    surface.blit(screen, (0, 0))
+
+
+def pause_screen(surface):
+    dim_screen(surface)
+    show_centered_text(surface, 'Game Paused')
+    return blink_text(surface)
+
+
+def game_over(surface):
+    dim_screen(surface)
+    show_centered_text(surface, 'Game Over')
+    return blink_text(surface)
 
 
 class Field():
@@ -95,19 +127,23 @@ class Field():
 
 if __name__ == '__main__':
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
     # Создание объектов
     field = Field(16, 8)
     # Стартовый экран
-    running = start_screen()  # Возможно надо будет как то по другому это сделать
+    running = start_screen(screen)  # Возможно надо будет как то по другому это сделать
     while running:
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    pause_screen(screen)
         screen.fill('black')
+        show_title(screen)
         field.draw(screen)
         pygame.display.flip()
     terminate()
