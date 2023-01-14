@@ -1,11 +1,23 @@
 import pygame
+import random
 import os
 import sys
 
 FPS = 60
 SIZE = WIDTH, HEIGHT = 800, 1000
+FIELD_HEIGHT, FIELD_WIDTH = 16, 8
 BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
+
+CELL_COLORS = ["empty", "1st", "2nd", "3rd"]
+BLOCK_SHAPES = [
+    [
+        [0, 0, 0, 0],
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0]
+    ]
+]
 
 
 def terminate():
@@ -96,6 +108,43 @@ def game_over(surface):
     dim_screen(surface)
     show_centered_text(surface, 'Game Over')
     return blink_text(surface)
+
+
+class Cell():
+    def __init__(self, y, x, state=False, color=None):
+        self.coords = (y, x)
+        self.state = state
+        if state:
+            self.color = color
+
+    def get_state(self):
+        return self.state
+
+    def get_coords(self):
+        return self.coords
+
+    def get_color(self):
+        return self.color
+
+    def fill(self, color):
+        self.state = True
+        self.color = color
+
+    def erase(self):
+        self.state = False
+        self.color = None
+
+    def __bool__(self):
+        return self.get_state()
+
+
+class Block():
+    def __init__(self, start_x=FIELD_HEIGHT, start_y=FIELD_WIDTH):
+        self.pos = (start_x, start_y)
+        self.color = random.randint(1, len(CELL_COLORS))
+        shape = random.choice(BLOCK_SHAPES)
+        self.field = [[Cell(y, x, shape[y][x], self.color)
+                       for x in range(4)] for y in range(4)]
 
 
 class Field():
