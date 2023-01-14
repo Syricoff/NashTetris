@@ -11,31 +11,38 @@ FIELD_SIZE = FIELD_HEIGHT, FIELD_WIDTH = 16, 8
 BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
 
-CELL_COLORS = ["empty", "1st", "2nd", "3rd"]
-BLOCK_SHAPES = [
-    [
-        [0, 0, 0, 0],
-        [1, 1, 1, 1],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0]
-    ],
-    [
-        [0, 0, 0],
-        [1, 1, 1],
-        [0, 1, 0]
-    ],
-    [
-        [0, 0, 0],
-        [1, 1, 1],
-        [1, 0, 0]
-    ],
-    [
-        [0, 0, 0, 0],
-        [0, 1, 1, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0]
-    ]
-]
+# Места хранения спрайтов для клеток разных цветов
+CELL_COLORS = ("empty", "1st", "2nd", "3rd")
+# Формы падающих фигур для генерации
+BLOCK_SHAPES = (
+    (
+        (0, 0, 0, 0),
+        (1, 1, 1, 1),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0)
+    ),
+    (
+        (0, 0, 0),
+        (1, 1, 1),
+        (0, 1, 0)
+    ),
+    (
+        (0, 0, 0),
+        (1, 1, 1),
+        (1, 0, 0)
+    ),
+    (
+        (0, 0, 0),
+        (1, 1, 1),
+        (0, 0, 1)
+    ),
+    (
+        (0, 0, 0, 0),
+        (0, 1, 1, 0),
+        (0, 1, 1, 0),
+        (0, 0, 0, 0)
+    )
+)
 
 
 def terminate():
@@ -67,7 +74,8 @@ def load_sound(name):
 
 
 def show_centered_text(surface, text: tuple | list, title=False):
-    font = pygame.font.Font('src/data/ChargeVectorBlack.ttf', 80) if title else pygame.font.Font(None, 60)
+    font = pygame.font.Font('src/data/ChargeVectorBlack.ttf',
+                            80) if title else pygame.font.Font(None, 60)
     text = font.render(text, True, 'white')
     textRect = text.get_rect()
     textRect.center = (int(WIDTH / 2), int(HEIGHT / 2))
@@ -144,12 +152,12 @@ class Cell():
     def get_color(self):
         return self.color
 
-    #Поставить в клетку квадрат
+    # Поставить в клетку квадрат
     def fill(self, color):
         self.state = True
         self.color = color
 
-    #Удалить квадрат из клетки
+    # Удалить квадрат из клетки
     def erase(self):
         self.state = False
         self.color = None
@@ -165,15 +173,21 @@ class Cell():
 
 
 class Block():
-    def __init__(self, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2):
+    def __init__(self, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2, field=None):
         # Задаем позицию левого нижнего угла нового блока
         self.pos = (start_x, start_y)
         # Генерируем случайный цвет, выбираем случайную форму
         self.color = random.randint(1, len(CELL_COLORS))
         shape = random.choice(BLOCK_SHAPES)
-        # Заполняем поле выбранными данными
-        self.field = [[Cell(y, x, shape[y][x], self.color)
-                       for x in range(len(shape))] for y in range(len(shape))]
+        # Заполняем поле данными, если они не были даны в конструкторе(Для корректной работы collide)
+        self.field = field
+        if not self.field:
+            self.field = [[Cell(y, x, shape[y][x], self.color)
+                           for x in range(len(shape))] for y in range(len(shape))]
+
+    # Запрос длины стороны поля блока
+    def size(self):
+        return len(self.field)
 
     # Перемещение вверх
     def down(self):
@@ -186,26 +200,35 @@ class Block():
     # поворачиваем блок по часовой стрелке
     def flip(self):
         temporary_field = self.field
-        for y in range(len(self.field)):
-            for x in range(len(self.field)):
-                self.field[y][x] = temporary_field[x][len(self.field) - y - 1]
+        for y in range(self.size()):
+            for x in range(self.size()):
+                self.field[y][x] = temporary_field[x][self.size() - y - 1]
                 # Изменяя клетку, изменяем и ее координаты
                 self.field[y][x].move(y, x)
 
     # поворачиваем блок против часовой стрелки(в случае когда коллайд сработал будем вызывать)
     def unflip(self):
         temporary_field = self.field
-        for y in range(len(self.field)):
-            for x in range(len(self.field)):
-                self.field[x][len(self.field) - y - 1] = temporary_field[y][x]
+        for y in range(self.size()):
+            for x in range(self.size()):
+                self.field[x][self.size() - y - 1] = temporary_field[y][x]
                 # Изменяя клетку, изменяем и ее координаты
-                self.field[x][len(self.field) - y - 1].move(x, len(self.field) - y - 1)
+                self.field[x][self.size() - y - 1].move(x,
+                                                        self.size() - y - 1)
 
+    # Проверка на пересечение с фрагментом поля стакана
+    def collide(self, other):
+        for y in range(self.size()):
+            for x in range(self.size()):
+                if self.field[y][x] == other.field[y][x] and self.field[y][x]:
+                    return True
+        return False
 
 class Field():
     def __init__(self, row, column) -> None:
         self.rect = pygame.Rect(20,
-                                HEIGHT - (row * BLOCK_SIZE.h + BORDER_W * 2) - 20,
+                                HEIGHT - (row * BLOCK_SIZE.h +
+                                          BORDER_W * 2) - 20,
                                 column * BLOCK_SIZE.w + BORDER_W * 2,
                                 row * BLOCK_SIZE.h + BORDER_W * 2)
         self.field = [[Cell(i, j) for i in range(column)] for j in range(row)]
@@ -278,7 +301,8 @@ if __name__ == '__main__':
 
 
     # Стартовый экран
-    running = start_screen(screen)  # Возможно надо будет как то по другому это сделать
+    # Возможно надо будет как то по другому это сделать
+    running = start_screen(screen)
     while running:
         clock.tick(FPS)
         for event in pygame.event.get():
