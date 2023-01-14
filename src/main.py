@@ -5,7 +5,7 @@ import sys
 
 FPS = 60
 SIZE = WIDTH, HEIGHT = 800, 1000
-FIELD_HEIGHT, FIELD_WIDTH = 16, 8
+FIELD_SIZE = FIELD_HEIGHT, FIELD_WIDTH = 16, 8
 BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
 
@@ -204,7 +204,7 @@ class Field():
                                 HEIGHT - (row * BLOCK_SIZE.h + BORDER_W * 2) - 20,
                                 column * BLOCK_SIZE.w + BORDER_W * 2,
                                 row * BLOCK_SIZE.h + BORDER_W * 2)
-        self.field = [[None for _ in range(column)] for _ in range(row)]
+        self.field = [[Cell(i, j) for i in range(column)] for j in range(row)]
 
     # Реализовал методы, для удобной работы с классом как со списком
     def __len__(self):
@@ -230,16 +230,32 @@ class Field():
         # Проходим в цикле по перевёрнутой матрице поля
         for row, line in enumerate(self[::-1]):
             for column, cell in enumerate(line):
-                if cell:  # Если в ячейке есть блок
+                if cell:
                     # Определяем позицию блока
                     pos = pygame.Rect((BLOCK_SIZE.w * column + BORDER_W,
                                        BLOCK_SIZE.h * row + BORDER_W),
                                       BLOCK_SIZE.size)
                     # Рисуем блок
                     # Пока рисует красным цветом, будут картинки
-                    pygame.draw.rect(image, 'red', pos, 0)
+                    pygame.draw.rect(image, cell.get_color(), pos, 0)
         # Переноим изображение на соновной холст
         surface.blit(image, self.rect)
+
+    def clean_lines(self):
+        # В разработке (переписываю)
+        clean_lines = []
+        for row, line in enumerate(self):
+            if all(line):
+                clean_lines.append(row)
+            else:
+                break
+        self.field.extend([None for i in range(len(clean_lines))])
+        for i in clean_lines:
+            del self[i]
+            
+    
+    class Score:
+        pass
 
 
 if __name__ == '__main__':
@@ -248,7 +264,8 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
     # Создание объектов
-    field = Field(FIELD_HEIGHT, FIELD_WIDTH)
+    field = Field(*FIELD_SIZE)
+    field[0] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     # Стартовый экран
     running = start_screen(screen)  # Возможно надо будет как то по другому это сделать
     while running:
@@ -259,6 +276,8 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     pause_screen(screen)
+                if event.key == pygame.K_g:
+                    field.clean_lines()
         screen.fill('black')
         show_title(screen)
         field.draw(screen)
