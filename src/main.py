@@ -1,5 +1,7 @@
+from itertools import product
 import pygame
 import random
+import pprint
 import os
 import sys
 
@@ -166,6 +168,9 @@ class Cell():
     def __bool__(self):
         return self.get_state()
 
+    def __repr__(self) -> str:
+        return f'Cell({self.coords}, {self.state}, {self.color}'
+
 
 class Block():
     def __init__(self, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2, field=None):
@@ -219,7 +224,6 @@ class Block():
                     return True
         return False
 
-
 class Field():
     def __init__(self, row, column) -> None:
         self.rect = pygame.Rect(20,
@@ -231,7 +235,7 @@ class Field():
 
     # Реализовал методы, для удобной работы с классом как со списком
     def __len__(self):
-        return len(self.rect)
+        return len(self.field)
 
     def __getitem__(self, key):
         return self.field[key]
@@ -244,6 +248,9 @@ class Field():
 
     def __iter__(self):
         return iter(self.field)
+
+    def __repr__(self):
+        return str(self.field)
 
     def draw(self, surface):
         # Создаём пустой холст размером поля
@@ -265,16 +272,14 @@ class Field():
         surface.blit(image, self.rect)
 
     def clean_lines(self):
-        # В разработке (переписываю)
-        clean_lines = []
-        for row, line in enumerate(self):
-            if all(line):
-                clean_lines.append(row)
-            else:
-                break
-        self.field.extend([None for i in range(len(clean_lines))])
-        for i in clean_lines:
-            del self[i]
+        self.field = list(filter(lambda x: not all(x), self))
+        self.field.extend([Cell(i, j) for i in range(FIELD_WIDTH)] for j in range(FIELD_HEIGHT - len(self)))
+        self.update_all_cell_coords()
+
+    def update_coords(self):
+        for i, j in product(range(FIELD_HEIGHT), range(FIELD_WIDTH)):
+            self[i][j].move(i, j)
+
 
     class Score:
         pass
@@ -288,6 +293,13 @@ if __name__ == '__main__':
     # Создание объектов
     field = Field(*FIELD_SIZE)
     field[0] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
+    field[1][5] = Cell(1, 5, True, 'red')
+    field[2] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
+    field[3][2] = Cell(1, 5, True, 'red')
+    field[4] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
+    field[5] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
+
+
     # Стартовый экран
     # Возможно надо будет как то по другому это сделать
     running = start_screen(screen)
