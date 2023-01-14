@@ -183,7 +183,8 @@ class Block():
         self.field = field
         if not self.field:
             self.field = [[Cell(y, x, shape[y][x], self.color)
-                           for x in range(len(shape))] for y in range(len(shape))]
+                           for x in range(len(shape))]
+                          for y in range(len(shape))]
 
     # Запрос длины стороны поля блока
     def size(self):
@@ -223,6 +224,7 @@ class Block():
                 if self.field[y][x] == other.field[y][x] and self.field[y][x]:
                     return True
         return False
+
 
 class Field():
     def __init__(self, row, column) -> None:
@@ -273,16 +275,17 @@ class Field():
 
     def clean_lines(self):
         self.field = list(filter(lambda x: not all(x), self))
-        self.field.extend([Cell(i, j) for i in range(FIELD_WIDTH)] for j in range(FIELD_HEIGHT - len(self)))
-        self.update_all_cell_coords()
+        self.field.extend([Cell(i, j) for i in range(FIELD_WIDTH)]
+                          for j in range(FIELD_HEIGHT - len(self)))
+        self.update_coords()
 
     def update_coords(self):
         for i, j in product(range(FIELD_HEIGHT), range(FIELD_WIDTH)):
             self[i][j].move(i, j)
 
 
-    class Score:
-        pass
+class Score:
+    pass
 
 
 if __name__ == '__main__':
@@ -298,8 +301,6 @@ if __name__ == '__main__':
     field[3][2] = Cell(1, 5, True, 'red')
     field[4] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     field[5] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
-
-
     # Стартовый экран
     # Возможно надо будет как то по другому это сделать
     running = start_screen(screen)
