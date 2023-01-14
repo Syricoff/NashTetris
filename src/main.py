@@ -190,6 +190,7 @@ class Field():
         surface.blit(image, self.rect)
 
     def clean_lines(self):
+        # В разработке (переписываю)
         clean_lines = []
         for row, line in enumerate(self):
             if all(line):
@@ -199,6 +200,10 @@ class Field():
         self.field.extend([None for i in range(len(clean_lines))])
         for i in clean_lines:
             del self[i]
+            
+    
+    class Score:
+        pass
 
 
 if __name__ == '__main__':
