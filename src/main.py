@@ -13,6 +13,22 @@ CELL_COLORS = ["empty", "1st", "2nd", "3rd"]
 BLOCK_SHAPES = [
     [
         [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+    ],
+    [
+        [0, 0, 0],
+        [1, 1, 1],
+        [0, 1, 0]
+    ],
+    [
+        [0, 0, 0],
+        [1, 1, 1],
+        [1, 0, 0]
+    ],
+    [
+        [0, 0, 0, 0],
         [0, 1, 1, 0],
         [0, 1, 1, 0],
         [0, 0, 0, 0]
@@ -113,6 +129,7 @@ def game_over(surface):
 class Cell():
     def __init__(self, y, x, state=False, color=None):
         self.coords = (y, x)
+        # state - наличие кубика в клетке
         self.state = state
         self.color = color
 
@@ -125,25 +142,60 @@ class Cell():
     def get_color(self):
         return self.color
 
+    #Поставить в клетку квадрат
     def fill(self, color):
         self.state = True
         self.color = color
 
+    #Удалить квадрат из клетки
     def erase(self):
         self.state = False
         self.color = None
+
+    def move(self, y, x):
+        self.coords = (y, x)
 
     def __bool__(self):
         return self.get_state()
 
 
 class Block():
-    def __init__(self, start_x=FIELD_HEIGHT, start_y=FIELD_WIDTH):
+    def __init__(self, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2):
+        # Задаем позицию левого нижнего угла нового блока
         self.pos = (start_x, start_y)
+        # Генерируем случайный цвет, выбираем случайную форму
         self.color = random.randint(1, len(CELL_COLORS))
         shape = random.choice(BLOCK_SHAPES)
+        # Заполняем поле выбранными данными
         self.field = [[Cell(y, x, shape[y][x], self.color)
-                       for x in range(4)] for y in range(4)]
+                       for x in range(len(shape))] for y in range(len(shape))]
+
+    # Перемещение вверх
+    def down(self):
+        self.pos = (self.pos[0] - 1, self.pos[1])
+
+    # Перемещение вниз (в случае когда коллайд сработал будем вызывать)
+    def up(self):
+        self.pos = (self.pos[0] + 1, self.pos[1])
+
+    # поворачиваем блок по часовой стрелке
+    def flip(self):
+        temporary_field = self.field
+        for y in range(len(self.field)):
+            for x in range(len(self.field)):
+                self.field[y][x] = temporary_field[x][len(self.field) - y - 1]
+                # Изменяя клетку, изменяем и ее координаты
+                self.field[y][x].move(y, x)
+
+    # поворачиваем блок против часовой стрелки(в случае когда коллайд сработал будем вызывать)
+    def unflip(self):
+        temporary_field = self.field
+        for y in range(len(self.field)):
+            for x in range(len(self.field)):
+                self.field[x][len(self.field) - y - 1] = temporary_field[y][x]
+                # Изменяя клетку, изменяем и ее координаты
+                self.field[x][len(self.field) - y - 1].move(x, len(self.field) - y - 1)
+
 
 
 class Field():
