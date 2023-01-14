@@ -36,9 +36,9 @@ def load_sound(name):
     return pygame.mixer.Sound(os.path.join('data', name))
 
 
-def show_centered_text(surface, text: tuple | list, color='white', title=False):
+def show_centered_text(surface, text: tuple | list, title=False):
     font = pygame.font.Font('src/data/ChargeVectorBlack.ttf', 80) if title else pygame.font.Font(None, 60)
-    text = font.render(text, True, color)
+    text = font.render(text, True, 'white')
     textRect = text.get_rect()
     textRect.center = (int(WIDTH / 2), int(HEIGHT / 2))
     surface.blit(text, textRect)
@@ -67,7 +67,8 @@ def blink_text(surface):
         elif color == 55:
             flag = True
         color += 1 if flag else -1
-        pressKeySurf = press_key_font.render('press any key to countine', True, (color, color, color))
+        pressKeySurf = press_key_font.render('press any key to countine', True,
+                                             (color, color, color), 'black')
         pressKeyRect = pressKeySurf.get_rect()
         pressKeyRect.center = (WIDTH / 2, HEIGHT * 0.55)
         surface.blit(pressKeySurf, pressKeyRect)
