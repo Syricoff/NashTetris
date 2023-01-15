@@ -1,14 +1,13 @@
 from itertools import product
 import pygame
 import random
-import pprint
 import os
 import sys
 
 FPS = 60
 SIZE = WIDTH, HEIGHT = 800, 1000
 FIELD_SIZE = FIELD_HEIGHT, FIELD_WIDTH = 16, 8
-BLOCK_SIZE = pygame.Rect(0, 0, 50, 50)
+BLOCK = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
 
 # Места хранения спрайтов для клеток разных цветов
@@ -55,7 +54,10 @@ def load_image(name):
     fullname = os.path.join('data', name)
     try:
         image = pygame.image.load(fullname)
-        image = image.convert() if image.get_alpha() is None else image.convert_alpha()
+        if image.get_alpha() is None:
+            image.convert()
+        else:
+            image.convert_alpha()
     except pygame.error as e:
         print('Cannot load image:', fullname)
         raise SystemExit from e
@@ -105,7 +107,7 @@ def blink_text(surface):
         elif color == 55:
             flag = True
         color += 1 if flag else -1
-        pressKeySurf = press_key_font.render('press any key to countine', True,
+        pressKeySurf = press_key_font.render('press any key to continue', True,
                                              (color, color, color), 'black')
         pressKeyRect = pressKeySurf.get_rect()
         pressKeyRect.center = (WIDTH / 2, HEIGHT * 0.55)
@@ -229,10 +231,10 @@ class Block():
 class Field():
     def __init__(self, row, column) -> None:
         self.rect = pygame.Rect(20,
-                                HEIGHT - (row * BLOCK_SIZE.h +
+                                HEIGHT - (row * BLOCK.h +
                                           BORDER_W * 2) - 20,
-                                column * BLOCK_SIZE.w + BORDER_W * 2,
-                                row * BLOCK_SIZE.h + BORDER_W * 2)
+                                column * BLOCK.w + BORDER_W * 2,
+                                row * BLOCK.h + BORDER_W * 2)
         self.field = [[Cell(i, j) for i in range(column)] for j in range(row)]
 
     # Реализовал методы, для удобной работы с классом как со списком
@@ -263,18 +265,18 @@ class Field():
         for row, line in enumerate(self[::-1]):
             for column, cell in enumerate(line):
                 if cell:
-                    # Определяем позицию блока
-                    pos = pygame.Rect((BLOCK_SIZE.w * column + BORDER_W,
-                                       BLOCK_SIZE.h * row + BORDER_W),
-                                      BLOCK_SIZE.size)
-                    # Рисуем блок
-                    # Пока рисует красным цветом, будут картинки
+                    # Определяем позицию клетки
+                    pos = pygame.Rect((BLOCK.w * column + BORDER_W,
+                                       BLOCK.h * row + BORDER_W),
+                                      BLOCK.size)
+                    # Рисуем клетку
                     pygame.draw.rect(image, cell.get_color(), pos, 0)
-        # Переноим изображение на соновной холст
+        # Переноим изображение на основной холст
         surface.blit(image, self.rect)
 
-    def clean_lines(self):
+    def clean_lines(self, score):
         self.field = list(filter(lambda x: not all(x), self))
+        score.update(FIELD_HEIGHT - len(self))
         self.field.extend([Cell(i, j) for i in range(FIELD_WIDTH)]
                           for j in range(FIELD_HEIGHT - len(self)))
         self.update_coords()
@@ -285,16 +287,55 @@ class Field():
 
 
 class Score:
-    pass
+    def __init__(self, pos, font):
+        self.score = 0
+        self.level = 1
+        self.lines = 0
+        self.font = font
+        self.rect = pygame.Rect(pos, (0, 0))
+        self.text = [
+            f"Lines: {self.lines}",
+            f"Score: {self.score}",
+            f"Level: {self.level}"
+        ]
+
+    def draw(self, screen):
+        sep = 40
+        for i, text in enumerate(self.text, 1):
+            line = self.font.render(text, True, 'white')
+            line_rect = line.get_rect()
+            line_rect.top, line_rect.left = self.rect.top + sep * i, self.rect.left
+            screen.blit(self.font.render(text, True, 'white'), line_rect)
+
+    def update(self, lines):
+        self.lines += lines
+        if lines == 4:
+            self.score += 1500
+        elif lines == 3:
+            self.score += 700
+        elif lines == 2:
+            self.score += 300
+        elif lines == 1:
+            self.score += 100
+        if self.score % (self.level * 10000) == 0:
+            self.level += 1
+        # Обновляю тексты
+        self.text = [
+            f"Lines: {self.lines}",
+            f"Score: {self.score}",
+            f"Level: {self.level}"
+        ]
 
 
 if __name__ == '__main__':
     pygame.init()
+    pygame.display.set_caption('NashTetris')
     screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
     # Создание объектов
     field = Field(*FIELD_SIZE)
+    score = Score((WIDTH * 0.7, HEIGHT * 0.7), pygame.font.Font(None, 50))
     field[0] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     field[1][5] = Cell(1, 5, True, 'red')
     field[2] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
@@ -302,7 +343,6 @@ if __name__ == '__main__':
     field[4] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     field[5] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     # Стартовый экран
-    # Возможно надо будет как то по другому это сделать
     running = start_screen(screen)
     while running:
         clock.tick(FPS)
@@ -313,9 +353,10 @@ if __name__ == '__main__':
                 if event.key == pygame.K_SPACE:
                     pause_screen(screen)
                 if event.key == pygame.K_g:
-                    field.clean_lines()
+                    field.clean_lines(score)
         screen.fill('black')
         show_title(screen)
         field.draw(screen)
+        score.draw(screen)
         pygame.display.flip()
     terminate()
