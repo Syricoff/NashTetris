@@ -75,10 +75,10 @@ def load_sound(name):
     return pygame.mixer.Sound(os.path.join('data', name))
 
 
-def show_centered_text(surface, text: tuple | list, title=False):
+def show_centered_text(surface, line, title=False):
     font = pygame.font.Font('src/data/ChargeVectorBlack.ttf',
                             80) if title else pygame.font.Font(None, 60)
-    text = font.render(text, True, 'white')
+    text = font.render(line, True, 'white')
     textRect = text.get_rect()
     textRect.center = (int(WIDTH / 2), int(HEIGHT / 2))
     surface.blit(text, textRect)
@@ -133,6 +133,7 @@ def pause_screen(surface):
 
 
 def game_over(surface):
+    # Дописать вывод итогов игры и кнопки для дальнейших действий
     dim_screen(surface)
     show_centered_text(surface, 'Game Over')
     return blink_text(surface)
@@ -304,7 +305,8 @@ class Score:
         for i, text in enumerate(self.text, 1):
             line = self.font.render(text, True, 'white')
             line_rect = line.get_rect()
-            line_rect.top, line_rect.left = self.rect.top + sep * i, self.rect.left
+            line_rect.top = self.rect.top + sep * i
+            line_rect.left = self.rect.left
             screen.blit(self.font.render(text, True, 'white'), line_rect)
 
     def update(self, lines):
