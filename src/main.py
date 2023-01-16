@@ -75,25 +75,7 @@ def load_sound(name):
     return pygame.mixer.Sound(os.path.join('data', name))
 
 
-def show_centered_text(surface, line, title=False):
-    font = pygame.font.Font('src/data/ChargeVectorBlack.ttf',
-                            80) if title else pygame.font.Font(None, 60)
-    text = font.render(line, True, 'white')
-    textRect = text.get_rect()
-    textRect.center = (int(WIDTH / 2), int(HEIGHT / 2))
-    surface.blit(text, textRect)
-
-
-def show_title(surface):
-    font = pygame.font.Font('src/data/ChargeVectorBlack.ttf', 80)
-    text = font.render('NashTetris', True, 'white')
-    textRect = text.get_rect()
-    textRect.center = (int(WIDTH / 2), textRect.h)
-    surface.blit(text, textRect)
-
-
 def blink_text(surface):
-    press_key_font = pygame.font.Font(None, 35)
     color = 55
     while True:
         clock.tick(FPS)
@@ -107,16 +89,16 @@ def blink_text(surface):
         elif color == 55:
             flag = True
         color += 1 if flag else -1
-        pressKeySurf = press_key_font.render('press any key to continue', True,
-                                             (color, color, color), 'black')
-        pressKeyRect = pressKeySurf.get_rect()
-        pressKeyRect.center = (WIDTH / 2, HEIGHT * 0.55)
-        surface.blit(pressKeySurf, pressKeyRect)
+        Text('press any key to continue', 35, 
+             pygame.Rect(WIDTH * 0.5, HEIGHT * 0.55, 0, 0),
+             color=(color,) * 3).draw(surface)
         pygame.display.flip()
 
 
 def start_screen(surface):
-    show_centered_text(surface, 'NashTetris', title=True)
+    Text('NashTetris', 80,
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0), 
+         True).draw(surface)
     return blink_text(surface)
 
 
@@ -128,18 +110,41 @@ def dim_screen(surface):
 
 def pause_screen(surface):
     dim_screen(surface)
-    show_centered_text(surface, 'Game Paused')
+    Text('Game Paused', 60,
+         pygame.Rect(WIDTH * 0.5, 
+                     HEIGHT * 0.5, 0, 0)).draw(surface)
     return blink_text(surface)
 
 
 def game_over(surface):
     # Дописать вывод итогов игры и кнопки для дальнейших действий
     dim_screen(surface)
-    show_centered_text(surface, 'Game Over')
+    Text('Game Over', 60,
+         pygame.Rect(WIDTH * 0.5, 
+                     HEIGHT * 0.5, 0, 0), True).draw(surface)
     return blink_text(surface)
 
 
-class Cell():
+class Text:
+    def __init__(self, text, size, rect, title=False, color='white'):
+        self.size = size
+        self.font = pygame.font.Font('src/data/ChargeVectorBlack.ttf',
+                                     self.size) if title else pygame.font.Font(
+                                         None, self.size)
+        self.color = color
+        self.text = self.font.render(text, True, self.color)
+        self.rect = self.text.get_rect()
+        self.rect.center = rect.topleft
+
+
+    def draw(self, surface):
+        surface.blit(self.text, self.rect)
+        
+    def get_rect(self):
+        return self.rect
+
+
+class Cell:
     def __init__(self, y, x, state=False, color=None):
         self.coords = (y, x)
         # state - наличие кубика в клетке
@@ -175,7 +180,7 @@ class Cell():
         return f'Cell({self.coords}, {self.state}, {self.color}'
 
 
-class Block():
+class Block:
     def __init__(self, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2, field=None):
         # Задаем позицию левого нижнего угла нового блока
         self.pos = (start_x, start_y)
@@ -229,7 +234,7 @@ class Block():
         return False
 
 
-class Field():
+class Field:
     def __init__(self, row, column) -> None:
         self.rect = pygame.Rect(20,
                                 HEIGHT - (row * BLOCK.h +
@@ -293,21 +298,20 @@ class Score:
         self.level = 1
         self.lines = 0
         self.font = font
-        self.rect = pygame.Rect(pos, (0, 0))
+        self.pos = pos
         self.text = [
             f"Lines: {self.lines}",
             f"Score: {self.score}",
             f"Level: {self.level}"
         ]
 
-    def draw(self, screen):
+    def draw(self, surface):
         sep = 40
+        pos = self.pos
         for i, text in enumerate(self.text, 1):
-            line = self.font.render(text, True, 'white')
-            line_rect = line.get_rect()
-            line_rect.top = self.rect.top + sep * i
-            line_rect.left = self.rect.left
-            screen.blit(self.font.render(text, True, 'white'), line_rect)
+            pos[1] += sep
+            line = Text(text, 45, pygame.Rect(pos, (0, 0)))
+            line.draw(surface)
 
     def update(self, lines):
         self.lines += lines
@@ -337,6 +341,7 @@ if __name__ == '__main__':
     pygame.key.set_repeat(200, 200)
     # Создание объектов
     field = Field(*FIELD_SIZE)
+    Title = Text('NashTetris', 80, pygame.Rect(WIDTH * 0.5, HEIGHT * 0.08, 0, 0), True)
     score = Score((WIDTH * 0.7, HEIGHT * 0.7), pygame.font.Font(None, 50))
     field[0] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     field[1][5] = Cell(1, 5, True, 'red')
@@ -357,7 +362,7 @@ if __name__ == '__main__':
                 if event.key == pygame.K_g:
                     field.clean_lines(score)
         screen.fill('black')
-        show_title(screen)
+        Title.draw(screen)
         field.draw(screen)
         score.draw(screen)
         pygame.display.flip()
