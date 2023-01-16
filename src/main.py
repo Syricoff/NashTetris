@@ -328,10 +328,12 @@ class Field:
     def __repr__(self):
         return str(self.field)
 
+    # Создание нового блока
     def create_block(self):
         self.block = self.new_block
         self.new_block = Block()
 
+    # "Запекаем" блок на поле, после вызова он станет его частью
     def bake(self):
         b_x, b_y = self.block.pos()
         for y in range(b_y, b_y + self.block.size()):
