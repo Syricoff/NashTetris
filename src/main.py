@@ -112,11 +112,33 @@ def pause_screen(surface):
     return blink_text(surface)
 
 
-def game_over(surface):
-    # Дописать вывод итогов игры и кнопки для дальнейших действий
+def game_over(surface, score):
     Text('Game Over', 60,
          pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0),
          True).draw(surface, True)
+    Text(f'Total Score: {score.get_score()}', 45,
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.25, 0, 0),
+         True).draw(surface)
+    # Цикл окна с запросом кнопок
+    clock = pygame.time.Clock()
+    while True:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    return True
+                if event.key == pygame.K_ESCAPE:
+                    terminate()
+        if color == 255:
+            flag = False
+        elif color == 55:
+            flag = True
+        color += 1 if flag else -1
+        line.set_color((color,) * 3)
+        line.draw(surface)
+        pygame.display.flip()
     return blink_text(surface)
 
 
@@ -220,7 +242,7 @@ class Cell:
         return f'Cell({self.coords}, {self.state}, {self.color}'
 
 
-class Block():
+class Block:
     def __init__(self, field=None,
                  start_x=FIELD_HEIGHT - 2,
                  start_y=FIELD_WIDTH // 2 - 2):
@@ -412,7 +434,9 @@ class Score:
             f"Score: {self.score}",
             f"Level: {self.level}"
         ]
-
+    
+    def get_score(self):
+        return self.score
 
 if __name__ == '__main__':
     pygame.init()
@@ -442,10 +466,20 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     pause_screen(screen)
-                if event.key == pygame.K_g:  # для тестов
+                elif event.key == pygame.K_g:  # для тестов
                     field.clean_lines(score)
-                if event.key == pygame.K_ESCAPE:
+                elif event.key == pygame.K_h:  # для тестов
+                    game_over(screen, score)
+                elif event.key == pygame.K_ESCAPE:
                     exit_screen(screen)
+                elif event.key == pygame.K_LEFT:
+                    field.left()
+                elif event.key == pygame.K_RIGHT:
+                    field.right()
+                elif event.key == pygame.K_DOWN:
+                    field.down()
+                elif event.key == pygame.K_UP:
+                    field.flip()
         screen.fill('black')
         title.draw(screen)
         field.draw(screen)
