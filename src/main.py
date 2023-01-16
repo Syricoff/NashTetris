@@ -221,20 +221,21 @@ class Cell:
 
 
 class Block():
-    def __init__(self, field=None,
+    def __init__(self, shape=None,
                  start_x=FIELD_HEIGHT - 2,
                  start_y=FIELD_WIDTH // 2 - 2):
         # Задаем позицию левого нижнего угла нового блока
         self.pos = (start_x, start_y)
         # Генерируем случайный цвет, выбираем случайную форму
-        self.color = random.randint(1, len(CELL_COLORS))
-        shape = random.choice(BLOCK_SHAPES)
+        # self.color = random.randint(1, len(CELL_COLORS))
+        self.color = "green"
+        self.shape = shape
+        if not shape:
+            shape = random.choice(BLOCK_SHAPES)
         # Заполняем поле данными, если они не были даны в конструкторе(Для корректной работы collide)
-        self.field = field
-        if not self.field:
-            self.field = [[Cell(y, x, shape[y][x], self.color)
-                           for x in range(len(shape))]
-                          for y in range(len(shape))]
+        self.field = [[Cell(y, x, shape[y][x], self.color)
+                       for x in range(len(shape))]
+                      for y in range(len(shape))]
 
     # Запрос длины стороны поля блока
     def size(self):
