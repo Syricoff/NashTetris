@@ -240,6 +240,14 @@ class Block():
     def size(self):
         return len(self.field)
 
+    # Перемещение вправо
+    def right(self):
+        self.pos = (self.pos[0], self.pos[1] + 1)
+
+    # Перемещение влево
+    def left(self):
+        self.pos = (self.pos[0], self.pos[1] - 1)
+
     # Перемещение вверх
     def down(self):
         self.pos = (self.pos[0] - 1, self.pos[1])
@@ -324,6 +332,16 @@ class Field:
         self.block = self.new_block
         self.new_block = Block()
 
+    def bake(self):
+        b_x, b_y = self.block.pos()
+        for y in range(b_y, b_y + self.block.size()):
+            for x in range(b_x, b_x + self.block.size()):
+                if y < 0 or x < 0 or x >= FIELD_WIDTH or y >= FIELD_HEIGHT:
+                    pass
+                else:
+                    self[y][x] = self.block[y - b_y][x - b_x]
+        self.update_coords()
+
     # Говорим, пересекает ли в текущем положении блок какую-либо клетку поля
     def collide(self):
         colliding_part = [
@@ -344,6 +362,26 @@ class Field:
         temporary_block = Block(colliding_part)
         # Пересекаем временный блок с основным
         return temporary_block.collide(self.block)
+
+    # Движение блока вправо с коллайдом
+    def move_right(self):
+        self.block.right()
+        if self.collide():
+            self.block.left()
+
+    # Движение блока влево с коллайдом
+    def move_left(self):
+        self.block.left()
+        if self.collide():
+            self.block.right()
+
+    # Движение блока вниз с коллайдом и переходом к новому блоку
+    def move_down(self):
+        self.block.down()
+        if self.collide():
+            self.block.up()
+            self.bake()
+            self.create_block()
 
     def draw(self, surface):
         # Создаём пустой холст размером поля
