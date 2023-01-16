@@ -11,35 +11,35 @@ BLOCK = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
 
 # Места хранения спрайтов для клеток разных цветов
-CELL_COLORS = ("empty", "1st", "2nd", "3rd")
+CELL_COLORS = ("empty", "blue", "green", "yellow")
 # Формы падающих фигур для генерации
 BLOCK_SHAPES = (
     (
-        (0, 0, 0, 0),
-        (1, 1, 1, 1),
-        (0, 0, 0, 0),
-        (0, 0, 0, 0)
+        (False, False, False, False),
+        (True, True, True, True),
+        (False, False, False, False),
+        (False, False, False, False)
     ),
     (
-        (0, 0, 0),
-        (1, 1, 1),
-        (0, 1, 0)
+        (False, False, False),
+        (True, True, True),
+        (False, True, False)
     ),
     (
-        (0, 0, 0),
-        (1, 1, 1),
-        (1, 0, 0)
+        (False, False, False),
+        (True, True, True),
+        (True, False, False)
     ),
     (
-        (0, 0, 0),
-        (1, 1, 1),
-        (0, 0, 1)
+        (False, False, False),
+        (True, True, True),
+        (False, False, True)
     ),
     (
-        (0, 0, 0, 0),
-        (0, 1, 1, 0),
-        (0, 1, 1, 0),
-        (0, 0, 0, 0)
+        (False, False, False, False),
+        (False, True, True, False),
+        (False, True, True, False),
+        (False, False, False, False)
     )
 )
 
