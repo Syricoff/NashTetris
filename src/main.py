@@ -75,8 +75,12 @@ def load_sound(name):
     return pygame.mixer.Sound(os.path.join('data', name))
 
 
-def blink_text(surface):
+def blink_text(surface,
+               text='press any key to continue',
+               rect=pygame.Rect(WIDTH * 0.5, HEIGHT * 0.55, 0, 0)):
     color = 55
+    clock = pygame.time.Clock()
+    line = Text(text, 35, rect, color=(color,) * 3)
     while True:
         clock.tick(FPS)
         for event in pygame.event.get():
@@ -89,9 +93,8 @@ def blink_text(surface):
         elif color == 55:
             flag = True
         color += 1 if flag else -1
-        Text('press any key to continue', 35, 
-             pygame.Rect(WIDTH * 0.5, HEIGHT * 0.55, 0, 0),
-             color=(color,) * 3).draw(surface)
+        line.set_color((color,) * 3)
+        line.draw(surface)
         pygame.display.flip()
 
 
@@ -102,28 +105,54 @@ def start_screen(surface):
     return blink_text(surface)
 
 
-def dim_screen(surface):
-    screen = pygame.Surface(SIZE, pygame.SRCALPHA)
-    screen.fill((0, 0, 0, 175))
-    surface.blit(screen, (0, 0))
-
-
 def pause_screen(surface):
-    dim_screen(surface)
     Text('Game Paused', 60,
          pygame.Rect(WIDTH * 0.5, 
-                     HEIGHT * 0.5, 0, 0)).draw(surface)
+                     HEIGHT * 0.5, 0, 0)).draw(surface, True)
     return blink_text(surface)
 
 
 def game_over(surface):
     # Дописать вывод итогов игры и кнопки для дальнейших действий
-    dim_screen(surface)
     Text('Game Over', 60,
-         pygame.Rect(WIDTH * 0.5, 
-                     HEIGHT * 0.5, 0, 0), True).draw(surface)
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0),
+         True).draw(surface, True)
     return blink_text(surface)
 
+
+def exit_screen(surface):
+    Text('Exit?', 60,
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0),
+         title=True).draw(surface, True)
+    Text('All progress will be clear', 30,
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.55, 0, 0),
+         color='red').draw(surface)
+    # Задаём цвет и текст для мерцания
+    color = 55
+    line = Text('press ESCAPE for exit, SPACE for resume', 35,
+                pygame.Rect(WIDTH * 0.5, HEIGHT * 0.58, 0, 0),
+                color=(color,) * 3)
+    # Цикл окна с запросом кнопок
+    clock = pygame.time.Clock()
+    while True:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            if event.type == pygame.KEYDOWN: 
+                if event.key == pygame.K_SPACE:
+                    return True
+                if event.key == pygame.K_ESCAPE:
+                    terminate()
+        if color == 255:
+            flag = False
+        elif color == 55:
+            flag = True
+        color += 1 if flag else -1
+        line.set_color((color,) * 3)
+        line.draw(surface)
+        pygame.display.flip()
+    
 
 class Text:
     def __init__(self, text, size, rect, title=False, color='white'):
@@ -132,16 +161,27 @@ class Text:
                                      self.size) if title else pygame.font.Font(
                                          None, self.size)
         self.color = color
-        self.text = self.font.render(text, True, self.color)
-        self.rect = self.text.get_rect()
+        self.text = text
+        self.draweble = self.font.render(self.text, True, self.color)
+        self.rect = self.draweble.get_rect()
         self.rect.center = rect.topleft
 
+    def draw(self, surface, dim=False):
+        if dim:
+            self.dim_screen(surface)
+        surface.blit(self.draweble, self.rect)
 
-    def draw(self, surface):
-        surface.blit(self.text, self.rect)
-        
+    def dim_screen(self, surface):
+        screen = pygame.Surface(SIZE, pygame.SRCALPHA)
+        screen.fill((0, 0, 0, 175))
+        surface.blit(screen, (0, 0))
+    
     def get_rect(self):
         return self.rect
+
+    def set_color(self, color):
+        self.color = color
+        self.draweble = self.font.render(self.text, True, self.color)
 
 
 class Cell:
@@ -293,11 +333,10 @@ class Field:
 
 
 class Score:
-    def __init__(self, pos, font):
+    def __init__(self, pos):
         self.score = 0
         self.level = 1
         self.lines = 0
-        self.font = font
         self.pos = pos
         self.text = [
             f"Lines: {self.lines}",
@@ -307,11 +346,10 @@ class Score:
 
     def draw(self, surface):
         sep = 40
-        pos = self.pos
-        for i, text in enumerate(self.text, 1):
-            pos[1] += sep
-            line = Text(text, 45, pygame.Rect(pos, (0, 0)))
-            line.draw(surface)
+        x, y = self.pos
+        for text in self.text:
+            y += sep
+            Text(text, 45, pygame.Rect((x, y), (0, 0))).draw(surface)
 
     def update(self, lines):
         self.lines += lines
@@ -341,8 +379,8 @@ if __name__ == '__main__':
     pygame.key.set_repeat(200, 200)
     # Создание объектов
     field = Field(*FIELD_SIZE)
-    Title = Text('NashTetris', 80, pygame.Rect(WIDTH * 0.5, HEIGHT * 0.08, 0, 0), True)
-    score = Score((WIDTH * 0.7, HEIGHT * 0.7), pygame.font.Font(None, 50))
+    title = Text('NashTetris', 80, pygame.Rect(WIDTH * 0.5, HEIGHT * 0.08, 0, 0), True)
+    score = Score((WIDTH * 0.75, HEIGHT * 0.7))
     field[0] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     field[1][5] = Cell(1, 5, True, 'red')
     field[2] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
@@ -359,10 +397,12 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     pause_screen(screen)
-                if event.key == pygame.K_g:
+                if event.key == pygame.K_g: # для тестов
                     field.clean_lines(score)
+                if event.key == pygame.K_ESCAPE:
+                    exit_screen(screen)
         screen.fill('black')
-        Title.draw(screen)
+        title.draw(screen)
         field.draw(screen)
         score.draw(screen)
         pygame.display.flip()
