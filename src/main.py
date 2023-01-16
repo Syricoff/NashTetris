@@ -114,11 +114,15 @@ def pause_screen(surface):
 
 def game_over(surface, score):
     Text('Game Over', 60,
-         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0),
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.25, 0, 0),
          True).draw(surface, True)
     Text(f'Total Score: {score.get_score()}', 45,
-         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.25, 0, 0),
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0),
          True).draw(surface)
+    color = 55
+    line = Text('press ESCAPE for exit, SPACE for new game', 35,
+                pygame.Rect(WIDTH * 0.5, HEIGHT * 0.58, 0, 0),
+                color=(color,) * 3)
     # Цикл окна с запросом кнопок
     clock = pygame.time.Clock()
     while True:
@@ -139,7 +143,6 @@ def game_over(surface, score):
         line.set_color((color,) * 3)
         line.draw(surface)
         pygame.display.flip()
-    return blink_text(surface)
 
 
 def exit_screen(surface):
@@ -438,6 +441,7 @@ class Score:
     def get_score(self):
         return self.score
 
+
 if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('NashTetris')
@@ -473,11 +477,11 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_ESCAPE:
                     exit_screen(screen)
                 elif event.key == pygame.K_LEFT:
-                    field.left()
+                    field.move_left()
                 elif event.key == pygame.K_RIGHT:
-                    field.right()
+                    field.move_right()
                 elif event.key == pygame.K_DOWN:
-                    field.down()
+                    field.move_down()
                 elif event.key == pygame.K_UP:
                     field.flip()
         screen.fill('black')
