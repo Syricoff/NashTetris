@@ -220,8 +220,8 @@ class Cell:
         return f'Cell({self.coords}, {self.state}, {self.color}'
 
 
-class Block:
-    def __init__(self, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2, field=None):
+class Block():
+    def __init__(self, field=None, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2):
         # Задаем позицию левого нижнего угла нового блока
         self.pos = (start_x, start_y)
         # Генерируем случайный цвет, выбираем случайную форму
@@ -269,19 +269,9 @@ class Block:
     def collide(self, other):
         for y in range(self.size()):
             for x in range(self.size()):
-                if self.field[y][x] == other.field[y][x] and self.field[y][x]:
+                if self[y][x] == other[y][x] and self[y][x]:
                     return True
         return False
-
-
-class Field:
-    def __init__(self, row, column) -> None:
-        self.rect = pygame.Rect(20,
-                                HEIGHT - (row * BLOCK.h +
-                                          BORDER_W * 2) - 20,
-                                column * BLOCK.w + BORDER_W * 2,
-                                row * BLOCK.h + BORDER_W * 2)
-        self.field = [[Cell(i, j) for i in range(column)] for j in range(row)]
 
     # Реализовал методы, для удобной работы с классом как со списком
     def __len__(self):
@@ -301,6 +291,56 @@ class Field:
 
     def __repr__(self):
         return str(self.field)
+
+
+class Field:
+    def __init__(self, row, column) -> None:
+        self.rect = pygame.Rect(20,
+                                HEIGHT - (row * BLOCK.h +
+                                          BORDER_W * 2) - 20,
+                                column * BLOCK.w + BORDER_W * 2,
+                                row * BLOCK.h + BORDER_W * 2)
+        self.field = [[Cell(i, j) for i in range(column)] for j in range(row)]
+        # Создаем два блока - текущий и следующий
+        self.new_block = Block()
+        self.create_block()
+
+    # Реализовал методы для работы с классом как со списком
+    def __getitem__(self, key):
+        return self.field[key]
+
+    def __setitem__(self, key, value):
+        self.field[key] = value
+
+    def __delitem__(self, key):
+        del self.field[key]
+
+    def __iter__(self):
+        return iter(self.field)
+
+    def create_block(self):
+        self.block = self.new_block
+        self.new_block = Block()
+
+    # Говорим, пересекает ли в текущем положении блок какую-либо клетку поля
+    def collide(self):
+        colliding_part = [[True for x in range(
+            self.block.size())] for y in range(self.block.size())]
+        b_x, b_y = self.block.pos()
+        # Делаем матрицу пересечения
+        for y in range(b_y, b_y + self.block.size()):
+            for x in range(b_x, b_x + self.block.size()):
+                if y >= FIELD_HEIGHT:
+                    colliding_part[y - b_y][x - b_x] = False
+                elif y < 0 or x < 0 or x >= FIELD_WIDTH:
+                    colliding_part[y - b_y][x - b_x] = True
+                else:
+                    colliding_part[y - b_y][x - b_x] = self[y][x]
+        # Используем матрицу для создания временного блока
+        temporary_block = Block(colliding_part)
+        # Пересекаем временный блок с основным
+        return temporary_block.collide(self.block)
+
 
     def draw(self, surface):
         # Создаём пустой холст размером поля
