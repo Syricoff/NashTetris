@@ -400,6 +400,17 @@ class Field:
                                       BLOCK.size)
                     # Рисуем клетку
                     pygame.draw.rect(image, cell.get_color(), pos, 0)
+        block_y, block_x = self.block.pos
+        for row, line in enumerate(self.block[::-1]):
+            for column, cell in enumerate(line):
+                x_pos = block_x + cell.get_coords()[1]
+                y_pos = block_y + cell.get_coords()[0]
+                if cell and 0 <= x_pos < FIELD_WIDTH and 0 <= y_pos < FIELD_HEIGHT:
+                    # Определяем позицию клетки
+                    pos = pygame.Rect((BLOCK.w * x_pos + BORDER_W,
+                                       BLOCK.h * (15 - y_pos) + BORDER_W),
+                                      BLOCK.size)
+                    pygame.draw.rect(image, cell.get_color(), pos, 0)
         # Переноим изображение на основной холст
         surface.blit(image, self.rect)
 
