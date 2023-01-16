@@ -377,7 +377,7 @@ class Field:
             [True for _ in range(self.block.size())]
             for _ in range(self.block.size())
         ]
-        b_x, b_y = self.block.pos()
+        b_x, b_y = self.block.pos
         # Делаем матрицу пересечения
         for y in range(b_y, b_y + self.block.size()):
             for x in range(b_x, b_x + self.block.size()):
@@ -536,7 +536,7 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_DOWN:
                     field.move_down()
                 elif event.key == pygame.K_UP:
-                    field.flip()
+                    pass
         screen.fill('black')
         title.draw(screen)
         field.draw(screen)
