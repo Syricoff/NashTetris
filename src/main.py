@@ -11,35 +11,35 @@ BLOCK = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
 
 # Места хранения спрайтов для клеток разных цветов
-CELL_COLORS = ("empty", "1st", "2nd", "3rd")
+CELL_COLORS = ("empty", "blue", "green", "yellow")
 # Формы падающих фигур для генерации
 BLOCK_SHAPES = (
     (
-        (0, 0, 0, 0),
-        (1, 1, 1, 1),
-        (0, 0, 0, 0),
-        (0, 0, 0, 0)
+        (False, False, False, False),
+        (True, True, True, True),
+        (False, False, False, False),
+        (False, False, False, False)
     ),
     (
-        (0, 0, 0),
-        (1, 1, 1),
-        (0, 1, 0)
+        (False, False, False),
+        (True, True, True),
+        (False, True, False)
     ),
     (
-        (0, 0, 0),
-        (1, 1, 1),
-        (1, 0, 0)
+        (False, False, False),
+        (True, True, True),
+        (True, False, False)
     ),
     (
-        (0, 0, 0),
-        (1, 1, 1),
-        (0, 0, 1)
+        (False, False, False),
+        (True, True, True),
+        (False, False, True)
     ),
     (
-        (0, 0, 0, 0),
-        (0, 1, 1, 0),
-        (0, 1, 1, 0),
-        (0, 0, 0, 0)
+        (False, False, False, False),
+        (False, True, True, False),
+        (False, True, True, False),
+        (False, False, False, False)
     )
 )
 
@@ -221,20 +221,21 @@ class Cell:
 
 
 class Block():
-    def __init__(self, field=None,
+    def __init__(self, shape=None,
                  start_x=FIELD_HEIGHT - 2,
                  start_y=FIELD_WIDTH // 2 - 2):
         # Задаем позицию левого нижнего угла нового блока
         self.pos = (start_x, start_y)
         # Генерируем случайный цвет, выбираем случайную форму
-        self.color = random.randint(1, len(CELL_COLORS))
-        shape = random.choice(BLOCK_SHAPES)
+        # self.color = random.randint(1, len(CELL_COLORS))
+        self.color = "green"
+        self.shape = shape
+        if not shape:
+            shape = random.choice(BLOCK_SHAPES)
         # Заполняем поле данными, если они не были даны в конструкторе(Для корректной работы collide)
-        self.field = field
-        if not self.field:
-            self.field = [[Cell(y, x, shape[y][x], self.color)
-                           for x in range(len(shape))]
-                          for y in range(len(shape))]
+        self.field = [[Cell(y, x, shape[y][x], self.color)
+                       for x in range(len(shape))]
+                      for y in range(len(shape))]
 
     # Запрос длины стороны поля блока
     def size(self):
@@ -359,6 +360,17 @@ class Field:
                                        BLOCK.h * row + BORDER_W),
                                       BLOCK.size)
                     # Рисуем клетку
+                    pygame.draw.rect(image, cell.get_color(), pos, 0)
+        block_y, block_x = self.block.pos
+        for row, line in enumerate(self.block[::-1]):
+            for column, cell in enumerate(line):
+                x_pos = block_x + cell.get_coords()[1]
+                y_pos = block_y + cell.get_coords()[0]
+                if cell and 0 <= x_pos < FIELD_WIDTH and 0 <= y_pos < FIELD_HEIGHT:
+                    # Определяем позицию клетки
+                    pos = pygame.Rect((BLOCK.w * x_pos + BORDER_W,
+                                       BLOCK.h * (15 - y_pos) + BORDER_W),
+                                      BLOCK.size)
                     pygame.draw.rect(image, cell.get_color(), pos, 0)
         # Переноим изображение на основной холст
         surface.blit(image, self.rect)
