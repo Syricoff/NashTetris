@@ -100,14 +100,14 @@ def blink_text(surface,
 
 def start_screen(surface):
     Text('NashTetris', 80,
-         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0), 
+         pygame.Rect(WIDTH * 0.5, HEIGHT * 0.5, 0, 0),
          True).draw(surface)
     return blink_text(surface)
 
 
 def pause_screen(surface):
     Text('Game Paused', 60,
-         pygame.Rect(WIDTH * 0.5, 
+         pygame.Rect(WIDTH * 0.5,
                      HEIGHT * 0.5, 0, 0)).draw(surface, True)
     return blink_text(surface)
 
@@ -139,7 +139,7 @@ def exit_screen(surface):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            if event.type == pygame.KEYDOWN: 
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     return True
                 if event.key == pygame.K_ESCAPE:
@@ -152,7 +152,7 @@ def exit_screen(surface):
         line.set_color((color,) * 3)
         line.draw(surface)
         pygame.display.flip()
-    
+
 
 class Text:
     def __init__(self, text, size, rect, title=False, color='white'):
@@ -175,7 +175,7 @@ class Text:
         screen = pygame.Surface(SIZE, pygame.SRCALPHA)
         screen.fill((0, 0, 0, 175))
         surface.blit(screen, (0, 0))
-    
+
     def get_rect(self):
         return self.rect
 
@@ -221,7 +221,9 @@ class Cell:
 
 
 class Block():
-    def __init__(self, field=None, start_x=FIELD_HEIGHT - 2, start_y=FIELD_WIDTH // 2 - 2):
+    def __init__(self, field=None,
+                 start_x=FIELD_HEIGHT - 2,
+                 start_y=FIELD_WIDTH // 2 - 2):
         # Задаем позицию левого нижнего угла нового блока
         self.pos = (start_x, start_y)
         # Генерируем случайный цвет, выбираем случайную форму
@@ -274,6 +276,32 @@ class Block():
         return False
 
     # Реализовал методы, для удобной работы с классом как со списком
+    def __getitem__(self, key):
+        return self.field[key]
+
+    def __setitem__(self, key, value):
+        self.field[key] = value
+
+    def __delitem__(self, key):
+        del self.field[key]
+
+    def __iter__(self):
+        return iter(self.field)
+
+
+class Field:
+    def __init__(self, row, column) -> None:
+        self.rect = pygame.Rect(20,
+                                HEIGHT - (row * BLOCK.h +
+                                          BORDER_W * 2) - 20,
+                                column * BLOCK.w + BORDER_W * 2,
+                                row * BLOCK.h + BORDER_W * 2)
+        self.field = [[Cell(i, j) for i in range(column)] for j in range(row)]
+        # Создаем два блока - текущий и следующий
+        self.new_block = Block()
+        self.create_block()
+
+    # Реализовал методы для работы с классом как со списком
     def __len__(self):
         return len(self.field)
 
@@ -292,40 +320,16 @@ class Block():
     def __repr__(self):
         return str(self.field)
 
-
-class Field:
-    def __init__(self, row, column) -> None:
-        self.rect = pygame.Rect(20,
-                                HEIGHT - (row * BLOCK.h +
-                                          BORDER_W * 2) - 20,
-                                column * BLOCK.w + BORDER_W * 2,
-                                row * BLOCK.h + BORDER_W * 2)
-        self.field = [[Cell(i, j) for i in range(column)] for j in range(row)]
-        # Создаем два блока - текущий и следующий
-        self.new_block = Block()
-        self.create_block()
-
-    # Реализовал методы для работы с классом как со списком
-    def __getitem__(self, key):
-        return self.field[key]
-
-    def __setitem__(self, key, value):
-        self.field[key] = value
-
-    def __delitem__(self, key):
-        del self.field[key]
-
-    def __iter__(self):
-        return iter(self.field)
-
     def create_block(self):
         self.block = self.new_block
         self.new_block = Block()
 
     # Говорим, пересекает ли в текущем положении блок какую-либо клетку поля
     def collide(self):
-        colliding_part = [[True for x in range(
-            self.block.size())] for y in range(self.block.size())]
+        colliding_part = [
+            [True for _ in range(self.block.size())]
+            for _ in range(self.block.size())
+        ]
         b_x, b_y = self.block.pos()
         # Делаем матрицу пересечения
         for y in range(b_y, b_y + self.block.size()):
@@ -340,7 +344,6 @@ class Field:
         temporary_block = Block(colliding_part)
         # Пересекаем временный блок с основным
         return temporary_block.collide(self.block)
-
 
     def draw(self, surface):
         # Создаём пустой холст размером поля
@@ -419,7 +422,9 @@ if __name__ == '__main__':
     pygame.key.set_repeat(200, 200)
     # Создание объектов
     field = Field(*FIELD_SIZE)
-    title = Text('NashTetris', 80, pygame.Rect(WIDTH * 0.5, HEIGHT * 0.08, 0, 0), True)
+    title = Text('NashTetris', 80,
+                 pygame.Rect(WIDTH * 0.5,
+                             HEIGHT * 0.08, 0, 0), True)
     score = Score((WIDTH * 0.75, HEIGHT * 0.7))
     field[0] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
     field[1][5] = Cell(1, 5, True, 'red')
@@ -437,7 +442,7 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     pause_screen(screen)
-                if event.key == pygame.K_g: # для тестов
+                if event.key == pygame.K_g:  # для тестов
                     field.clean_lines(score)
                 if event.key == pygame.K_ESCAPE:
                     exit_screen(screen)
