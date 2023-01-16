@@ -179,6 +179,17 @@ def exit_screen(surface):
         pygame.display.flip()
 
 
+def next_shape(surface, block):
+    Text('Next Shape', 45,
+         pygame.Rect(WIDTH * 0.75, HEIGHT * 0.3, 0, 0),
+         True).draw(surface)
+    for i in block:
+        for j in i:
+            
+            
+            
+
+
 class Text:
     def __init__(self, text, size, rect, title=False, color='white'):
         self.size = size
@@ -243,7 +254,6 @@ class Cell:
 
     def __repr__(self) -> str:
         return f'Cell({self.coords}, {self.state}, {self.color}'
-
 
 
 class Block():
@@ -359,6 +369,9 @@ class Field:
     def create_block(self):
         self.block = self.new_block
         self.new_block = Block()
+        
+    def next_block(self):
+        return self.new_block
 
     # "Запекаем" блок на поле, после вызова он станет его частью
     def bake(self):
