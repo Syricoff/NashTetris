@@ -244,6 +244,9 @@ class Cell:
 
     def __bool__(self):
         return self.get_state()
+    
+    def __eq__(self, other) -> bool:
+        return bool(self) == bool(other)
 
     def __repr__(self) -> str:
         return f'Cell({self.coords}, {self.state}, {self.color}'
@@ -308,7 +311,7 @@ class Block():
     def collide(self, other):
         for y in range(self.size()):
             for x in range(self.size()):
-                if self[y][x].__bool__() == other[y][x].__bool__() and self[y][x]:
+                if self[y][x] == other[y][x] and self[y][x]:
                     return True
         return False
 
