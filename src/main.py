@@ -439,8 +439,8 @@ class Field:
                     # Рисуем клетку
                     pygame.draw.rect(image, cell.get_color(), pos, 0)
         block_y, block_x = self.block.pos
-        for row, line in enumerate(self.block[::-1]):
-            for column, cell in enumerate(line):
+        for line in self.block[::-1]:
+            for cell in line:
                 x_pos = block_x + cell.get_coords()[1]
                 y_pos = block_y + cell.get_coords()[0]
                 if cell and 0 <= x_pos < FIELD_WIDTH and 0 <= y_pos < FIELD_HEIGHT:
@@ -493,7 +493,7 @@ class Score:
             self.score += 300
         elif lines == 1:
             self.score += 100
-        if self.score % (self.level * 10000) == 0:
+        if self.score != 0 and self.score % (self.level * 1000) == 0:
             self.level += 1
         # Обновляю тексты
         self.text = [
@@ -504,6 +504,9 @@ class Score:
 
     def get_score(self):
         return self.score
+
+    def get_level(self):
+        return self.level
 
 
 if __name__ == '__main__':
@@ -531,8 +534,6 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     pause_screen(screen)
-                elif event.key == pygame.K_g:  # для тестов
-                    field.clean_lines(score)
                 elif event.key == pygame.K_h:  # для тестов
                     game_over(screen, score)
                 elif event.key == pygame.K_ESCAPE:
@@ -548,9 +549,11 @@ if __name__ == '__main__':
             if event.type == DOWNEVENT:
                 field.move_down()
             elif event.type == TIMEEVENT:
-                current_speed += 15
-                pygame.time.set_timer(DOWNEVENT, max(
-                    150, 1000 - current_speed))
+                current_speed = score.get_level() * 10
+                pygame.time.set_timer(DOWNEVENT,
+                                      max(100, 1000 - current_speed))
+        if all(any(row) for row in field):
+            game_over(screen, score)
         screen.fill('black')
         title.draw(screen)
         field.draw(screen)
