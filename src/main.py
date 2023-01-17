@@ -1,4 +1,5 @@
 from itertools import product
+import pprint
 import pygame
 import random
 import os
@@ -10,6 +11,9 @@ FIELD_SIZE = FIELD_HEIGHT, FIELD_WIDTH = 16, 8
 BLOCK = pygame.Rect(0, 0, 50, 50)
 BORDER_W = 5
 
+# Событие
+DOWNEVENT = pygame.USEREVENT + 1
+TIMEEVENT = pygame.USEREVENT + 2
 # Места хранения спрайтов для клеток разных цветов
 CELL_COLORS = ("empty", "blue", "green", "yellow")
 # Формы падающих фигур для генерации
@@ -245,7 +249,6 @@ class Cell:
         return f'Cell({self.coords}, {self.state}, {self.color}'
 
 
-
 class Block():
     def __init__(self, shape=None,
                  start_x=FIELD_HEIGHT - 2,
@@ -285,32 +288,35 @@ class Block():
 
     # поворачиваем блок по часовой стрелке
     def flip(self):
-        temporary_field = self.field
+        temporary_field = Block([[cell.get_state()
+                                for cell in row] for row in self.field])
         for y in range(self.size()):
             for x in range(self.size()):
-                self.field[y][x] = temporary_field[x][self.size() - y - 1]
-                # Изменяя клетку, изменяем и ее координаты
-                self.field[y][x].move(y, x)
+                self[y][x] = temporary_field[x][self.size() - y - 1]
+        self.update_coords()
 
     # поворачиваем блок против часовой стрелки(в случае когда коллайд сработал будем вызывать)
     def unflip(self):
-        temporary_field = self.field
+        temporary_field = Block([[cell.get_state()
+                                for cell in row] for row in self.field])
         for y in range(self.size()):
             for x in range(self.size()):
                 self.field[x][self.size() - y - 1] = temporary_field[y][x]
-                # Изменяя клетку, изменяем и ее координаты
-                self.field[x][self.size() - y - 1].move(x,
-                                                        self.size() - y - 1)
+        self.update_coords()
 
     # Проверка на пересечение с фрагментом поля стакана
     def collide(self, other):
         for y in range(self.size()):
             for x in range(self.size()):
-                if self[y][x] == other[y][x] and self[y][x]:
+                if self[y][x].__bool__() == other[y][x].__bool__() and self[y][x]:
                     return True
         return False
 
-    # Реализовал методы, для удобной работы с классом как со списком
+    def update_coords(self):
+        for i, j in product(range(self.size()), range(self.size())):
+            self[i][j].move(i, j)
+
+    # Реализовал методы для удобной работы с классом как со списком
     def __getitem__(self, key):
         return self.field[key]
 
@@ -362,12 +368,11 @@ class Field:
 
     # "Запекаем" блок на поле, после вызова он станет его частью
     def bake(self):
-        b_x, b_y = self.block.pos()
+        b_y, b_x = self.block.pos
         for y in range(b_y, b_y + self.block.size()):
             for x in range(b_x, b_x + self.block.size()):
-                if y < 0 or x < 0 or x >= FIELD_WIDTH or y >= FIELD_HEIGHT:
-                    pass
-                else:
+                if (0 <= y < FIELD_HEIGHT and 0 <= x < FIELD_WIDTH and
+                   self.block[y - b_y][x - b_x]):
                     self[y][x] = self.block[y - b_y][x - b_x]
         self.update_coords()
 
@@ -377,16 +382,17 @@ class Field:
             [True for _ in range(self.block.size())]
             for _ in range(self.block.size())
         ]
-        b_x, b_y = self.block.pos
+        b_y, b_x = self.block.pos
         # Делаем матрицу пересечения
         for y in range(b_y, b_y + self.block.size()):
             for x in range(b_x, b_x + self.block.size()):
                 if y >= FIELD_HEIGHT:
                     colliding_part[y - b_y][x - b_x] = False
-                elif y < 0 or x < 0 or x >= FIELD_WIDTH:
+                elif y < 0 or x < 0 or x >= FIELD_WIDTH or self[y][x]:
                     colliding_part[y - b_y][x - b_x] = True
                 else:
-                    colliding_part[y - b_y][x - b_x] = self[y][x]
+                    colliding_part[y - b_y][x - b_x] = False
+
         # Используем матрицу для создания временного блока
         temporary_block = Block(colliding_part)
         # Пересекаем временный блок с основным
@@ -403,6 +409,11 @@ class Field:
         self.block.left()
         if self.collide():
             self.block.right()
+
+    def flip(self):
+        self.block.flip()
+        if self.collide():
+            self.block.unflip()
 
     # Движение блока вниз с коллайдом и переходом к новому блоку
     def move_down(self):
@@ -490,7 +501,7 @@ class Score:
             f"Score: {self.score}",
             f"Level: {self.level}"
         ]
-    
+
     def get_score(self):
         return self.score
 
@@ -501,18 +512,15 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
+    pygame.time.set_timer(DOWNEVENT, 1000)
+    pygame.time.set_timer(TIMEEVENT, 1000)
     # Создание объектов
     field = Field(*FIELD_SIZE)
     title = Text('NashTetris', 80,
                  pygame.Rect(WIDTH * 0.5,
                              HEIGHT * 0.08, 0, 0), True)
     score = Score((WIDTH * 0.75, HEIGHT * 0.7))
-    field[0] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
-    field[1][5] = Cell(1, 5, True, 'red')
-    field[2] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
-    field[3][2] = Cell(1, 5, True, 'red')
-    field[4] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
-    field[5] = [Cell(i, 0, True, 'red') for i in range(FIELD_WIDTH)]
+    current_speed = 0
     # Стартовый экран
     running = start_screen(screen)
     while running:
@@ -536,10 +544,17 @@ if __name__ == '__main__':
                 elif event.key == pygame.K_DOWN:
                     field.move_down()
                 elif event.key == pygame.K_UP:
-                    pass
+                    field.flip()
+            if event.type == DOWNEVENT:
+                field.move_down()
+            elif event.type == TIMEEVENT:
+                current_speed += 15
+                pygame.time.set_timer(DOWNEVENT, max(
+                    150, 1000 - current_speed))
         screen.fill('black')
         title.draw(screen)
         field.draw(screen)
         score.draw(screen)
+        field.clean_lines(score)
         pygame.display.flip()
     terminate()
