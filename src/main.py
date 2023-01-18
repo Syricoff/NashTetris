@@ -558,7 +558,7 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
-    pygame.time.set_timer(DOWNEVENT, 1000)Ой
+    pygame.time.set_timer(DOWNEVENT, 1000)
     # Создание объектов
     field = Field(*FIELD_SIZE)
     title = Text('NashTetris', 80,
