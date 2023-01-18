@@ -251,7 +251,7 @@ class Cell:
         return f'Cell({self.coords}, {self.state}, {self.color}'
 
 
-class Block():
+class Block:
     def __init__(self, shape=None,
                  start_x=FIELD_HEIGHT - 2,
                  start_y=FIELD_WIDTH // 2 - 2):
@@ -514,7 +514,7 @@ class Score:
             self.score += 300
         elif lines == 1:
             self.score += 100
-        if self.score != 0 and self.score % (self.level * 1000) == 0:
+        if self.score != 0 and self.score / 1000 >= self.level:
             self.level += 1
         # Обновляю тексты
         self.text = [
@@ -574,9 +574,11 @@ if __name__ == '__main__':
                 pygame.time.set_timer(DOWNEVENT,
                                       max(100, 1000 - current_speed))
         if all(any(row) for row in field):
-            game_over(screen, score)
+            if game_over(screen, score):
+                field = Field(*FIELD_SIZE)
+                score = Score((WIDTH * 0.77, HEIGHT * 0.55))
+                current_speed = 0
         screen.fill('black')
-        
         title.draw(screen)
         field.draw(screen)
         score.draw(screen)
