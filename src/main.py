@@ -434,7 +434,14 @@ class Field:
     def flip(self):
         self.block.flip()
         if self.collide():
-            self.block.unflip()
+            self.block.left()
+        if self.collide():
+            self.block.left()
+        if self.collide():
+            for i in range(3):
+                self.block.right()
+        if self.collide():
+            self.block.right()
 
     # Движение блока вниз с коллайдом и переходом к новому блоку
     def move_down(self):
