@@ -10,11 +10,11 @@ FIELD_SIZE = FIELD_HEIGHT, FIELD_WIDTH = 20, 10
 BLOCK = pygame.Rect(0, 0, 40, 40)
 BORDER_W = 5
 
-# Событие
+# Событие падения блока
 DOWNEVENT = pygame.USEREVENT + 1
-TIMEEVENT = pygame.USEREVENT + 2
 # Места хранения спрайтов для клеток разных цветов
-CELL_COLORS = ("empty", "blue", "green", "yellow")
+CELL_COLORS = ("black", "blue", "green", "yellow",
+               "red", "orange", "purple", "brown")
 # Формы падающих фигур для генерации
 BLOCK_SHAPES = (
     (
@@ -217,7 +217,10 @@ class Cell:
         self.coords = (y, x)
         # state - наличие кубика в клетке
         self.state = state
-        self.color = color
+        if self.state:
+            self.color = color
+        else:
+            self.color = 0
 
     def get_state(self):
         return self.state
@@ -252,18 +255,20 @@ class Cell:
 
 
 class Block:
-    def __init__(self, shape=None,
-                 start_x=FIELD_HEIGHT - 2,
-                 start_y=FIELD_WIDTH // 2 - 2):
+    def __init__(self, shape=None, color=None,
+                 start_y=FIELD_HEIGHT - 2,
+                 start_x=FIELD_WIDTH // 2 - 2):
         # Задаем позицию левого нижнего угла нового блока
-        self.pos = (start_x, start_y)
+        self.pos = (start_y, start_x)
         # Генерируем случайный цвет, выбираем случайную форму
-        # self.color = random.randint(1, len(CELL_COLORS))
-        self.color = "green"
+        self.color = color
+        if not color:
+            self.color = random.randint(1, len(CELL_COLORS) - 1)
         self.shape = shape
         if not shape:
             shape = random.choice(BLOCK_SHAPES)
-        self.rect = pygame.Rect(0, 0, BLOCK.w * len(shape[0]), BLOCK.h * len(shape))
+        self.rect = pygame.Rect(0, 0, BLOCK.w * len(shape[0]),
+                                BLOCK.h * len(shape))
         # Заполняем поле данными, если они не были даны в конструкторе(Для корректной работы collide)
         self.field = [[Cell(y, x, shape[y][x], self.color)
                        for x in range(len(shape))]
@@ -272,6 +277,9 @@ class Block:
     # Запрос длины стороны поля блока
     def size(self):
         return len(self.field)
+
+    def get_color(self):
+        return self.color
 
     # Перемещение вправо
     def right(self):
@@ -292,7 +300,7 @@ class Block:
     # поворачиваем блок по часовой стрелке
     def flip(self):
         temporary_field = Block([[cell.get_state()
-                                for cell in row] for row in self.field])
+                                for cell in row] for row in self.field], self.get_color())
         for y in range(self.size()):
             for x in range(self.size()):
                 self[y][x] = temporary_field[x][self.size() - y - 1]
@@ -300,8 +308,8 @@ class Block:
 
     # поворачиваем блок против часовой стрелки(в случае когда коллайд сработал будем вызывать)
     def unflip(self):
-        temporary_field = Block([[cell.get_state()
-                                for cell in row] for row in self.field])
+        temporary_field = Block([[cell.get_state() for cell in row]
+                                 for row in self.field], self.get_color())
         for y in range(self.size()):
             for x in range(self.size()):
                 self.field[x][self.size() - y - 1] = temporary_field[y][x]
@@ -379,7 +387,8 @@ class Field:
                     pos = pygame.Rect(((column * BLOCK.w),
                                        (row * BLOCK.w)),
                                       BLOCK.size)
-                    pygame.draw.rect(image, cell.get_color(), pos, 0)
+                    pygame.draw.rect(
+                        image, CELL_COLORS[cell.get_color()], pos, 0)
         image_rect = image.get_rect()
         image_rect.midtop = rect.topleft
         surface.blit(image, image_rect)
@@ -442,6 +451,10 @@ class Field:
                 self.block.right()
         if self.collide():
             self.block.right()
+        if self.collide():
+            self.block.left()
+            self.block.left()
+            self.block.unflip()
 
     # Движение блока вниз с коллайдом и переходом к новому блоку
     def move_down(self):
@@ -465,7 +478,8 @@ class Field:
                                        BLOCK.h * row + BORDER_W),
                                       BLOCK.size)
                     # Рисуем клетку
-                    pygame.draw.rect(image, cell.get_color(), pos, 0)
+                    pygame.draw.rect(
+                        image, CELL_COLORS[cell.get_color()], pos, 0)
         block_y, block_x = self.block.pos
         for line in self.block[::-1]:
             for cell in line:
@@ -476,7 +490,8 @@ class Field:
                     pos = pygame.Rect((BLOCK.w * x_pos + BORDER_W,
                                        BLOCK.h * (FIELD_HEIGHT - y_pos - 1) + BORDER_W),
                                       BLOCK.size)
-                    pygame.draw.rect(image, cell.get_color(), pos, 0)
+                    pygame.draw.rect(
+                        image, CELL_COLORS[cell.get_color()], pos, 0)
         # Переноим изображение на основной холст
         surface.blit(image, self.rect)
 
@@ -543,8 +558,7 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
     pygame.key.set_repeat(200, 200)
-    pygame.time.set_timer(DOWNEVENT, 1000)
-    pygame.time.set_timer(TIMEEVENT, 1000)
+    pygame.time.set_timer(DOWNEVENT, 1000)Ой
     # Создание объектов
     field = Field(*FIELD_SIZE)
     title = Text('NashTetris', 80,
@@ -576,10 +590,10 @@ if __name__ == '__main__':
                     field.flip()
             if event.type == DOWNEVENT:
                 field.move_down()
-            elif event.type == TIMEEVENT:
-                current_speed = score.get_level() * 10
+                current_speed = score.get_level() * 100
                 pygame.time.set_timer(DOWNEVENT,
                                       max(100, 1000 - current_speed))
+            # elif event.type == TIMEEVENT:
         if all(any(row) for row in field):
             if game_over(screen, score):
                 field = Field(*FIELD_SIZE)
