@@ -1,5 +1,4 @@
 from itertools import product
-import pprint
 import pygame
 import random
 import os
@@ -183,17 +182,6 @@ def exit_screen(surface):
         pygame.display.flip()
 
 
-def next_shape(surface, block):
-    Text('Next Shape', 45,
-         pygame.Rect(WIDTH * 0.75, HEIGHT * 0.3, 0, 0),
-         True).draw(surface)
-    for i in block:
-        for j in i:
-            
-            
-            
-
-
 class Text:
     def __init__(self, text, size, rect, title=False, color='white'):
         self.size = size
@@ -255,7 +243,7 @@ class Cell:
 
     def __bool__(self):
         return self.get_state()
-    
+
     def __eq__(self, other) -> bool:
         return bool(self) == bool(other)
 
@@ -275,6 +263,7 @@ class Block():
         self.shape = shape
         if not shape:
             shape = random.choice(BLOCK_SHAPES)
+        self.rect = pygame.Rect(0, 0, BLOCK.w * len(shape[0]), BLOCK.h * len(shape))
         # Заполняем поле данными, если они не были даны в конструкторе(Для корректной работы collide)
         self.field = [[Cell(y, x, shape[y][x], self.color)
                        for x in range(len(shape))]
@@ -379,9 +368,24 @@ class Field:
     def create_block(self):
         self.block = self.new_block
         self.new_block = Block()
-        
-    def next_block(self):
-        return self.new_block
+
+    def next_shape(self, surface, rect):
+        text_rect = rect.copy()
+        text_rect.y = text_rect.y - 55
+        image = pygame.Surface(self.new_block.rect.size)
+        for row, line in enumerate(self.new_block[::-1]):
+            for column, cell in enumerate(line):
+                if cell:
+                    pos = pygame.Rect(((column * BLOCK.w),
+                                       (row * BLOCK.w)),
+                                      BLOCK.size)
+                    pygame.draw.rect(image, cell.get_color(), pos, 0)
+        image_rect = image.get_rect()
+        image_rect.midtop = rect.topleft
+        surface.blit(image, image_rect)
+        Text('Next Shape', 45,
+             text_rect,
+             True).draw(surface)
 
     # "Запекаем" блок на поле, после вызова он станет его частью
     def bake(self):
@@ -494,11 +498,11 @@ class Score:
         ]
 
     def draw(self, surface):
-        sep = 40
+        sep = 60
         x, y = self.pos
         for text in self.text:
             y += sep
-            Text(text, 45, pygame.Rect((x, y), (0, 0))).draw(surface)
+            Text(text, 45, pygame.Rect((x, y), (0, 0)), True).draw(surface)
 
     def update(self, lines):
         self.lines += lines
@@ -539,7 +543,7 @@ if __name__ == '__main__':
     title = Text('NashTetris', 80,
                  pygame.Rect(WIDTH * 0.5,
                              HEIGHT * 0.08, 0, 0), True)
-    score = Score((WIDTH * 0.75, HEIGHT * 0.7))
+    score = Score((WIDTH * 0.77, HEIGHT * 0.55))
     current_speed = 0
     # Стартовый экран
     running = start_screen(screen)
@@ -572,9 +576,11 @@ if __name__ == '__main__':
         if all(any(row) for row in field):
             game_over(screen, score)
         screen.fill('black')
+        
         title.draw(screen)
         field.draw(screen)
         score.draw(screen)
+        field.next_shape(screen, pygame.Rect(WIDTH * 0.77, HEIGHT * 0.3, 0, 0))
         field.clean_lines(score)
         pygame.display.flip()
     terminate()
