@@ -6,8 +6,8 @@ import sys
 
 FPS = 60
 SIZE = WIDTH, HEIGHT = 800, 1000
-FIELD_SIZE = FIELD_HEIGHT, FIELD_WIDTH = 16, 8
-BLOCK = pygame.Rect(0, 0, 50, 50)
+FIELD_SIZE = FIELD_HEIGHT, FIELD_WIDTH = 20, 10
+BLOCK = pygame.Rect(0, 0, 40, 40)
 BORDER_W = 5
 
 # Событие
@@ -467,7 +467,7 @@ class Field:
                 if cell and 0 <= x_pos < FIELD_WIDTH and 0 <= y_pos < FIELD_HEIGHT:
                     # Определяем позицию клетки
                     pos = pygame.Rect((BLOCK.w * x_pos + BORDER_W,
-                                       BLOCK.h * (15 - y_pos) + BORDER_W),
+                                       BLOCK.h * (FIELD_HEIGHT - y_pos - 1) + BORDER_W),
                                       BLOCK.size)
                     pygame.draw.rect(image, cell.get_color(), pos, 0)
         # Переноим изображение на основной холст
