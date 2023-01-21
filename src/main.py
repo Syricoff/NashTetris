@@ -1,16 +1,16 @@
 import pygame
 
 from constants import (FPS, SIZE, WIDTH, HEIGHT,
-                       FIELD_SIZE, DOWNEVENT)
+                       FIELD_SIZE, DOWNEVENT, terminate)
 from shapes import Field
 from texts import Text, Score
 from screens import (pause_screen, start_screen,
                      game_over, exit_screen)
-from base import terminate
 
 
 if __name__ == '__main__':
     pygame.init()
+    pygame.mixer.music.load("src/data/Juhani Junkala.wav")
     pygame.display.set_caption('NashTetris')
     screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
@@ -25,6 +25,8 @@ if __name__ == '__main__':
     current_speed = 0
     # Стартовый экран
     running = start_screen(screen)
+    # Запускаем музыку
+    pygame.mixer.music.play(loops=-1)
     while running:
         clock.tick(FPS)
         for event in pygame.event.get():
@@ -32,9 +34,13 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    pygame.mixer.music.pause()
                     pause_screen(screen)
+                    pygame.mixer.music.unpause()
                 elif event.key == pygame.K_ESCAPE:
+                    pygame.mixer.music.pause()
                     exit_screen(screen)
+                    pygame.mixer.music.unpause()
                 elif event.key == pygame.K_LEFT:
                     field.move_left()
                 elif event.key == pygame.K_RIGHT:
@@ -49,7 +55,9 @@ if __name__ == '__main__':
                 pygame.time.set_timer(DOWNEVENT,
                                       max(100, 1000 - current_speed))
         if all(any(row) for row in field):
+            pygame.mixer.music.stop()
             if game_over(screen, score):
+                pygame.mixer.music.play(loops=-1)
                 field = Field(*FIELD_SIZE)
                 score = Score((WIDTH * 0.77, HEIGHT * 0.55))
                 current_speed = 0

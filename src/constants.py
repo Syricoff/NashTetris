@@ -1,4 +1,5 @@
 import pygame
+import sys
 
 FPS = 60
 SIZE = WIDTH, HEIGHT = 800, 1000
@@ -51,3 +52,8 @@ BLOCK_SHAPES = (
         (False, False, False, False)
     )
 )
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()

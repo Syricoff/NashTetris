@@ -1,8 +1,7 @@
 import pygame
 
-from constants import (FPS, WIDTH, HEIGHT)
+from constants import (FPS, WIDTH, HEIGHT, terminate)
 from texts import Text, blink_text
-from base import terminate
 
 
 def start_screen(surface):

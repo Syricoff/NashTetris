@@ -1,7 +1,6 @@
 import pygame
 
-from base import terminate
-from constants import (FPS, SIZE, WIDTH, HEIGHT)
+from constants import (FPS, SIZE, WIDTH, HEIGHT, terminate)
 
 
 def blink_text(surface,
