@@ -62,7 +62,9 @@ class Score:
         self.level = 1
         self.lines = 0
         self.pos = pos
+        self.max_score = int(open("src/data/max_score.txt", 'r').readline().strip())
         self.text = [
+            f"Max Score: {self.max_score}",
             f"Lines: {self.lines}",
             f"Score: {self.score}",
             f"Level: {self.level}"
@@ -73,7 +75,7 @@ class Score:
         x, y = self.pos
         for text in self.text:
             y += sep
-            Text(text, 45, pygame.Rect((x, y), (0, 0)), True).draw(surface)
+            Text(text, 40, pygame.Rect((x, y), (0, 0)), True).draw(surface)
 
     def update(self, lines):
         self.lines += lines
@@ -87,12 +89,19 @@ class Score:
             self.score += 100
         if self.score != 0 and self.score / 1000 >= self.level:
             self.level += 1
+        if self.score >= self.max_score:
+            self.update_max_score()
         # Обновляю тексты
         self.text = [
+            f"Max Score: {self.max_score}",
             f"Lines: {self.lines}",
             f"Score: {self.score}",
             f"Level: {self.level}"
         ]
+
+    def update_max_score(self):
+        print(f'{self.score}', file=open("src/data/max_score.txt", 'w'))
+        self.max_score = int(open("src/data/max_score.txt", 'r').readline())
 
     def get_score(self):
         return self.score
