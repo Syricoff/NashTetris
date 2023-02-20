@@ -11,7 +11,9 @@ BORDER_W = 5
 # Событие падения блока
 DOWNEVENT = pygame.USEREVENT + 1
 # Места хранения спрайтов для клеток разных цветов
-CELL_SPRITES = ["empty-cell.bmp", "red-cell.bmp"]
+CELL_SPRITES = ["empty-cell.bmp", "red-cell.bmp", "blue-cell.bmp",
+                "green-cell.bmp", "yellow-cell.bmp", "orange-cell.bmp",
+                "purple-cell.bmp"]
 CELL_COLORS = [pygame.sprite.Sprite() for _ in range(len(CELL_SPRITES))]
 for i, sprite in enumerate(CELL_COLORS):
     sprite.image = pygame.image.load(
