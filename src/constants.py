@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 
 FPS = 60
 SIZE = WIDTH, HEIGHT = 800, 1000
@@ -10,8 +11,13 @@ BORDER_W = 5
 # Событие падения блока
 DOWNEVENT = pygame.USEREVENT + 1
 # Места хранения спрайтов для клеток разных цветов
-CELL_COLORS = ("black", "blue", "green", "yellow",
-               "red", "orange", "purple", "brown")
+CELL_SPRITES = ["empty-cell.bmp", "red-cell.bmp"]
+CELL_COLORS = [pygame.sprite.Sprite() for _ in range(len(CELL_SPRITES))]
+for i, sprite in enumerate(CELL_COLORS):
+    sprite.image = pygame.image.load(
+        os.path.join('src/data', CELL_SPRITES[i]))
+    sprite.rect = sprite.image.get_rect()
+
 # Формы падающих фигур для генерации
 BLOCK_SHAPES = (
     (

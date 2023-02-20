@@ -2,7 +2,7 @@ import pygame
 import random
 from itertools import product
 from constants import (HEIGHT, FIELD_HEIGHT, FIELD_WIDTH,
-                       BLOCK, BORDER_W, CELL_COLORS, BLOCK_SHAPES)
+                       BLOCK, BORDER_W, CELL_COLORS, BLOCK_SHAPES, CELL_COLORS)
 from texts import Text
 
 
@@ -184,8 +184,10 @@ class Field:
                     pos = pygame.Rect(((column * BLOCK.w),
                                        (row * BLOCK.w)),
                                       BLOCK.size)
-                    pygame.draw.rect(
-                        image, CELL_COLORS[cell.get_color()], pos, 0)
+                    (CELL_COLORS[cell.get_color()].rect.x,
+                        CELL_COLORS[cell.get_color()].rect.y) = (pos.x, pos.y)
+                    image.blit(
+                        CELL_COLORS[cell.get_color()].image, CELL_COLORS[cell.get_color()].rect)
         image_rect = image.get_rect()
         image_rect.midtop = rect.topleft
         surface.blit(image, image_rect)
@@ -269,14 +271,13 @@ class Field:
         # Проходим в цикле по перевёрнутой матрице поля
         for row, line in enumerate(self[::-1]):
             for column, cell in enumerate(line):
-                if cell:
-                    # Определяем позицию клетки
-                    pos = pygame.Rect((BLOCK.w * column + BORDER_W,
-                                       BLOCK.h * row + BORDER_W),
-                                      BLOCK.size)
-                    # Рисуем клетку
-                    pygame.draw.rect(
-                        image, CELL_COLORS[cell.get_color()], pos, 0)
+                # Определяем позицию клетки
+                (CELL_COLORS[cell.get_color()].rect.x,
+                 CELL_COLORS[cell.get_color()].rect.y) = (BLOCK.w * column + BORDER_W,
+                                                          BLOCK.h * row + BORDER_W)
+                # Рисуем клетку
+                image.blit(
+                    CELL_COLORS[cell.get_color()].image, CELL_COLORS[cell.get_color()].rect)
         block_y, block_x = self.block.pos
         for line in self.block[::-1]:
             for cell in line:
@@ -285,12 +286,12 @@ class Field:
                 if cell and 0 <= x_pos < FIELD_WIDTH and \
                         0 <= y_pos < FIELD_HEIGHT:
                     # Определяем позицию клетки
-                    pos = pygame.Rect((BLOCK.w * x_pos + BORDER_W,
-                                       BLOCK.h * (FIELD_HEIGHT - y_pos - 1)
-                                       + BORDER_W),
-                                      BLOCK.size)
-                    pygame.draw.rect(
-                        image, CELL_COLORS[cell.get_color()], pos, 0)
+                    (CELL_COLORS[cell.get_color()].rect.x,
+                     CELL_COLORS[cell.get_color()].rect.y) = (BLOCK.w * x_pos + BORDER_W,
+                                                              BLOCK.h * (FIELD_HEIGHT - y_pos - 1) + BORDER_W)
+                    # Рисуем клетку
+                    image.blit(
+                        CELL_COLORS[cell.get_color()].image, CELL_COLORS[cell.get_color()].rect)
         # Переноим изображение на основной холст
         surface.blit(image, self.rect)
 
