@@ -11,7 +11,7 @@ from screens import (pause_screen, start_screen,
 if __name__ == '__main__':
     pygame.init()
     # Подключение музыки
-    pygame.mixer.music.load("src/data/Juhani Junkala.wav")
+    pygame.mixer.music.load("data/Juhani Junkala.wav")
     # Основные настройки
     pygame.display.set_caption('NashTetris')
     screen = pygame.display.set_mode(SIZE)

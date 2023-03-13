@@ -15,7 +15,7 @@ CELL_SPRITES = ["empty-cell.bmp", "red-cell.bmp"]
 CELL_COLORS = [pygame.sprite.Sprite() for _ in range(len(CELL_SPRITES))]
 for i, sprite in enumerate(CELL_COLORS):
     sprite.image = pygame.image.load(
-        os.path.join('src/data', CELL_SPRITES[i]))
+        os.path.join('data', CELL_SPRITES[i]))
     sprite.rect = sprite.image.get_rect()
 
 # Формы падающих фигур для генерации

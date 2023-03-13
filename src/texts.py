@@ -29,7 +29,7 @@ def blink_text(surface,
 class Text:
     def __init__(self, text, size, rect, title=False, color='white'):
         self.size = size
-        self.font = pygame.font.Font('src/data/ChargeVectorBlack.ttf',
+        self.font = pygame.font.Font('data/ChargeVectorBlack.ttf',
                                      self.size) if title else pygame.font.Font(
                                          None, self.size)
         self.color = color
@@ -62,7 +62,8 @@ class Score:
         self.level = 1
         self.lines = 0
         self.pos = pos
-        self.max_score = int(open("src/data/max_score.txt", 'r').readline().strip())
+        self.max_score = int(
+            open("data/max_score.txt", 'r').readline().strip())
         self.text = [
             f"Max Score: {self.max_score}",
             f"Lines: {self.lines}",
@@ -100,8 +101,8 @@ class Score:
         ]
 
     def update_max_score(self):
-        print(f'{self.score}', file=open("src/data/max_score.txt", 'w'))
-        self.max_score = int(open("src/data/max_score.txt", 'r').readline())
+        print(f'{self.score}', file=open("data/max_score.txt", 'w'))
+        self.max_score = int(open("data/max_score.txt", 'r').readline())
 
     def get_score(self):
         return self.score
