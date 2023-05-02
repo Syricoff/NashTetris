@@ -1,9 +1,5 @@
 # NashTetris
 
-###### Проект для YandexLyceum
-
----
-
 Представляем свою реализацию известной игры Tetris с использованием библиотеки PyGame
 
 ## Установка
@@ -22,3 +18,6 @@ pip install -r requirements.txt
 cd src
 python3 main.py
 ```
+
+
+###### Проект для YandexLyceum
